@@ -1,0 +1,6 @@
+samples
+samples/*
+__pycache__
+*/__pycache__/*
+# EXCLUDE KEYS
+*/setup_openai.py

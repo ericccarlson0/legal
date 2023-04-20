@@ -1,0 +1,9 @@
+In TRPO, an objective function, the "surrogate" objective, is maximized subject to a constraint on the size of the policy update.
+This problem can efficiently be approximately solved using the conjugate gradient algorithm, after making a linear approximation to the objective and a quadratic approximation to the constraint.
+The theory justifying TRPO actually suggests using a penalty instead of a constraint, solving the unconstrained optimization problem.
+The constrained quantity (multiplied by coefficient Beta) is now subtracted from the maximized quantity to produce a new maximized quantity.
+This follows from the fact that a certain surrogate objective which computes the max KL over states instead of the mean forms a lower bound, a pessimistic bound on the performance of the policy.
+TRPO uses a hard constraint rather than a penalty because it is hard to choose a single value of Beta that performs well across different problems,
+or even within a single problem, where the characteristics change over the course of learning.
+Hence, to achieve our goal of a 1st-order algorithm that emulates the monotonic improvement of TRPO, experiments show that it is not sufficient to simply choose a fixed penalty coefficient Beta
+and optimize the penalized objective equation with SGD; additional modifications are required.

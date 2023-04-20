@@ -1,0 +1,18 @@
+Let r^t denote the probability ratio between the previous value of Pi (Pi^old) and the current value of Pi.
+TRPO maximizes a "surrogate objective" L^CPI which is the expectation of A times r^t.
+The superscript CPI refers to Conservative Policy Iteration, where this objective was proposed.
+Without a constraint, maximization of LCPI would lead to an excessively large policy update.
+Hence, we now consider how to modify the objective, to penalize changes to the policy that take the current value of Pi too far from Pi^old.
+The main objective we propose is L^CLIP, which is the expectation of the minimum between (a) A times r^t and (b) A times the CLIP function of r^t and Epsilon.
+The 1st term inside this minimum is simply LCP.
+Epsilon is a hyperparameter, say 0.2.
+The CLIP function modifies the surrogate objective by clipping the probability ratio, which removes the incentive for moving r^t outside of the interval between 1-Epsilon and 1+Epsilon.
+We take the minimum of the clipped objective and unclipped objective (LCP), so the new objective is a lower bound, a pessimistic bound on the unclipped objective.
+With this scheme, we only ignore the change in probability ratio when it would make the objective improve, and we include it when it makes the objective worse.
+Note that L^CLIP = L^CPI to 1st order around Pi = Pi^old (that is, where r = 1);
+however, they become different as Pi moves away from Pi^old.
+Figure 1 plots a single term, i.e. a single t in L^CLIP;
+note that the probability ratio r is clipped at 1-Epsilon or 1+Epsilon depending on whether the advantage is positive or negative.
+Figure 2 provides another source of intuition about the surrogate objective L^CLIP.
+It shows how several objectives vary as we interpolate along the policy update direction, obtained by proximal policy optimization (the algorithm we will introduce) on a continuous control problem.
+We can see that L^CLIP is a lower bound on L^CPI, with a penalty for having too large of a policy update.

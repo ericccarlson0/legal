@@ -1,0 +1,8 @@
+Another approach, which can be used as an alternative to the clipped surrogate objective, or in addition to it, is to use a penalty on KL divergence, and to adapt the penalty coeðcient so that we achieve some target value of the KL divergence dtarg each policy updateà In our experiments, we found that the KL penalty performed worse than the clipped surrogate objective, however, we've included it here because it's an important baselineà
+In the simplest instantiation of this algorithm, we perform the following steps in each policy update:
+
+1. Using several epochs of minibatch SGD, optimize the KL-penalized objective, L^KLPEN, which is the expectation of A times r^t, minus Beta times the KL-divergence between the current Pi and Pi^old.
+
+2. Compute D, which is the KL-divergence between the current Pi and Pi^old; if D is less than D^target divided by 1.5, divide the coefficient Beta by two for the next round; if D is more than D^target multiplied by 1.5, multiply the coefficient Beta by two for the next round.
+
+The updated Beta is used for the next policy update. With this scheme, we occasionally see policy updates where the KL divergence is significantly different from D^target; however, these are rare and Beta quickly adjusts. The parameters of 1.5 and 2 in the previous section are chosen heuristically, but the algorithm is not very sensitive to them. Th initial value of Beta is another hyper parameter but is not important in practice because the algorithm quickly adjusts it.
