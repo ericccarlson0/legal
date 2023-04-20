@@ -1,5 +1,5 @@
-import sys
-sys.path.append("/Users/ericcarlson/Desktop/Projects/re-act") # FIXME
+# import sys
+# sys.path.append(PROJECT_DIR) # FIXME
 
 import os
 import re

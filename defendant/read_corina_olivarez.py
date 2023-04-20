@@ -1,3 +1,6 @@
+# import sys
+# sys.path.append(PROJECT_DIR) # FIXME
+
 import openai
 import util.setup_openai as setup_openai
 

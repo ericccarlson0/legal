@@ -1,5 +1,5 @@
-import sys
-sys.path.append("/Users/ericcarlson/Desktop/Projects/re-act") # FIXME
+# import sys
+# sys.path.append(PROJECT_DIR) # FIXME
 
 from typing import List
 from util.str_util import count_spaces

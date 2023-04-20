@@ -1,5 +1,5 @@
 import sys
-sys.path.append("/Users/ericcarlson/Desktop/Projects/re-act") # FIXME
+# sys.path.append(PROJECT_DIR) # FIXME
 
 import openai
 import os
