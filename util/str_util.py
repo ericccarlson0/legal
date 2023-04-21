@@ -76,8 +76,12 @@ possible_prefixes = [
     "PROCEEDINGS",
     "PROCEEDING",
     "THE REPORTER",
+    "(On the record",
+    "On the record",
     "(Formal Federal deposition read-in waived by all parties present",
     "Formal Federal deposition read-in waived by all parties present",
+    "THE REPORTER: We are on the record",
+    "COURT REPORTER: Today's date",
 ]
 def cut_before_prefix(s: str) -> str:
     for prefix in possible_prefixes:
@@ -91,6 +95,7 @@ def cut_before_prefix(s: str) -> str:
     return s
 
 possible_suffixes = [
+    "THE REPORTER: Off the record",
     "(End of deposition",
     "End of depositions",
     "* * * END OF DEPOSITION",
@@ -99,7 +104,7 @@ possible_suffixes = [
     "Deposition concluded at",
     "I have us off record at",
     "(End of proceedings",
-    "End of proceedings"
+    "End of proceedings",
 ]
 def cut_after_suffix(s: str) -> str:
     for suffix in possible_suffixes:

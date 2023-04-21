@@ -20,7 +20,8 @@ def extract_dotted(s: str) -> str:
     
     return ' '.join(line_arr)
 
-def depo_transcript(depo_dir: str, fname: str, top_margin: int = 0, bottom_margin: int = 0) -> str:
+def depo_transcript(depo_dir: str, fname: str, top_margin: int = 0, bottom_margin: int = 0, 
+                    left_margin: int = 0, right_margin: int = 0) -> str:
     reader = PdfReader(os.path.join(depo_dir, fname))
 
     box = reader.pages[0].mediabox
@@ -29,8 +30,10 @@ def depo_transcript(depo_dir: str, fname: str, top_margin: int = 0, bottom_margi
     body_arr = []
     # IGNORE HEADER, FOOTER
     def visitor_body(text, cm, tm, font_dict, font_size):
-        y = tm[5]
+        _, _, _, _, x, y = tm
         if y < top_margin or y > int(box.height - bottom_margin):
+            return
+        if x < left_margin or x > int(box.width - right_margin):
             return
 
         body_arr.append(extract_dotted(text) if '·' in text else text)
@@ -46,10 +49,10 @@ def depo_transcript(depo_dir: str, fname: str, top_margin: int = 0, bottom_margi
             continue
 
         if not is_numbered(body_arr):
+            print("NOT NUMBERED")
             # print(body_arr[0])
             # print(body_arr[1])
             # print(body_arr[2], '...')
-            # print("NOT NUMBERED")
             continue
 
         first_n = find_first_n(body_arr)
@@ -108,13 +111,14 @@ def depo_transcript_quarters(depo_dir: str, fname: str, l_margin: int = 75, r_ma
                 # print("\nEMPTY\n")
                 continue
 
-            first_n = find_first_n(body_arr)
             try:
+                first_n = find_first_n(body_arr)
                 body_arr = strip_line_numbers(body_arr, n=first_n)
             except:
-                # print("\nNOT NUMBERED")
+                print("\nNOT NUMBERED")
                 # print(body_arr[0])
-                # print(body_arr[1], '...\n')
+                # print(body_arr[1])
+                # print(body_arr[2], '...')
                 continue
             body_arr = strip_whitespace(body_arr)
 
