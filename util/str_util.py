@@ -54,7 +54,7 @@ def count_spaces(s: str) -> int:
 def string_before(s: str, suffix: str, include: bool = False) -> str:
     l = len(suffix)
     for i in range(len(s), l, -1):
-        if s[i-l: i] == suffix:
+        if s[i-l :i] == suffix:
             return s[ :i] if include else s[ :i-l]
     
     raise Exception(f'Did not find suffix {suffix}')
@@ -67,6 +67,51 @@ def string_after(s: str, prefix: str, include: bool = False) -> str:
             return s[i: ] if include else s[i+l: ]
     
     raise Exception(f'Did not find prefix {prefix}.')
+
+MAX_CUT_LEN = 8192
+# TODO: Ask the AI to cut out the introduction?
+possible_prefixes = [
+    "P R O C E E D I N G S",
+    "P R O C E E D I N G",
+    "PROCEEDINGS",
+    "PROCEEDING",
+    "THE REPORTER",
+    "(Formal Federal deposition read-in waived by all parties present",
+    "Formal Federal deposition read-in waived by all parties present",
+]
+def cut_before_prefix(s: str) -> str:
+    for prefix in possible_prefixes:
+        l = len(prefix)
+        cut_len = min((len(s) - l) // 2, MAX_CUT_LEN)
+        for i in range(cut_len):
+            if s[i: i+l] == prefix:
+                return s[i+l: ]
+        # print('did not find', prefix)
+    
+    return s
+
+possible_suffixes = [
+    "(End of deposition",
+    "End of depositions",
+    "* * * END OF DEPOSITION",
+    "CHANGES AND SIGNATURE",
+    "(Deposition concluded at",
+    "Deposition concluded at",
+    "I have us off record at",
+    "(End of proceedings",
+    "End of proceedings"
+]
+def cut_after_suffix(s: str) -> str:
+    for suffix in possible_suffixes:
+        l = len(suffix)
+        cut_len = min((len(s) - l) // 2, MAX_CUT_LEN)
+        for i in range(len(s), len(s) - cut_len, -1):
+            if (s[i-l :i] == suffix):
+                return s[ :i-l]
+        # print('did not find', suffix)
+    
+    return s
+
 
 # FUNCTION TO CUT TEXT WITH TOO MANY TOKENS
 def cut_at_q(s: str) -> Tuple[str, str]:
