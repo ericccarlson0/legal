@@ -9,15 +9,15 @@ from util.str_util import count_spaces, string_after, string_before
 from util.token_util import divide_by_tokens
 from util.transcripts import depo_transcript
 
-full_transcript = depo_transcript(DEPO_DIR, "Bridget Clower Full.pdf", top_margin=0, bottom_margin=0)
+transcript = depo_transcript(DEPO_DIR, "Bridget Clower Full.pdf", top_margin=0, bottom_margin=0)
 
-full_transcript = string_after(full_transcript, 'P R O C E E D I N G S', include=False)
+transcript = string_after(transcript, 'P R O C E E D I N G S', include=False)
 
-full_transcript = string_before(full_transcript, '(End of deposition at 3:16 p.m.)', include=False)
+transcript = string_before(transcript, '(End of deposition at 3:16 p.m.)', include=False)
 
-print(count_spaces(full_transcript), 'spaces')
+print(count_spaces(transcript), 'spaces')
 
-segments = divide_by_tokens(full_transcript, 2560)
+segments = divide_by_tokens(transcript, 2560)
 
 for i, s in enumerate(segments):
     print(i)
