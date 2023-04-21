@@ -20,11 +20,11 @@ def extract_dotted(s: str) -> str:
     
     return ' '.join(line_arr)
 
-def depo_transcript(depo_dir, fname: str, top_margin: int = 0, bottom_margin: int = 0) -> str:
+def depo_transcript(depo_dir: str, fname: str, top_margin: int = 0, bottom_margin: int = 0) -> str:
     reader = PdfReader(os.path.join(depo_dir, fname))
 
     box = reader.pages[0].mediabox
-    print('w', box.width, 'h', box.height)
+    # print('w', box.width, 'h', box.height)
 
     body_arr = []
     # IGNORE HEADER, FOOTER
@@ -42,25 +42,88 @@ def depo_transcript(depo_dir, fname: str, top_margin: int = 0, bottom_margin: in
 
         body_arr = strip_whitespace(body_arr)
         if len(body_arr) == 0:
-            print("EMPTY")
+            # print("EMPTY")
             continue
 
         if not is_numbered(body_arr):
-            print(body_arr[0])
-            print(body_arr[1])
-            print(body_arr[2], '...')
-            print("NOT NUMBERED")
+            # print(body_arr[0])
+            # print(body_arr[1])
+            # print(body_arr[2], '...')
+            # print("NOT NUMBERED")
             continue
 
         first_n = find_first_n(body_arr)
         body_arr = strip_line_numbers(body_arr, n=first_n)
         body_arr = strip_whitespace(body_arr)
 
-        print(i)
+        # print(i)
 
         transcript = ' '.join(body_arr)
-        print(len(transcript), 'letters')
+        # print(len(transcript), 'letters')
         page_transcripts.append(transcript)
+
+    ret = ' '.join(page_transcripts)
+    ret = re.sub(' +', ' ', ret)
+
+    return ret
+
+def depo_transcript_quarters(depo_dir: str, fname: str, l_margin: int = 75, r_margin: int = 75, 
+                             t_margin: int = 75, b_margin: int = 75):
+    reader = PdfReader(os.path.join(depo_dir, fname))
+
+    box = reader.pages[0].mediabox
+    # print('w', box.width, 'h', box.height)
+
+    body_arr = []
+
+    def get_region_visitor(x_min, x_max, y_min, y_max):
+        def visitor(text, cm, tm, font_dict, font_size):
+            _, _, _, _, x, y = tm
+            if y < y_min or y > y_max:
+                return
+            if x < x_min or x > x_max:
+                return
+            
+            body_arr.append(extract_dotted(text) if '·' in text else text)
+        
+        return visitor
+
+    page_transcripts = []
+    regions = [
+        [l_margin, box.width // 2, box.height // 2, int(box.height - b_margin)],
+        [l_margin, box.width // 2, t_margin, box.height // 2],
+        [box.width // 2, int(box.width - r_margin), box.height // 2, int(box.height - b_margin)],
+        [box.width // 2, int(box.width - r_margin), t_margin, box.height // 2],
+    ]
+    for i, p in enumerate(reader.pages):
+        if i < 1:
+            continue
+
+        for x_min, x_max, y_min, y_max in regions:
+            body_arr.clear()
+            p.extract_text(visitor_text=get_region_visitor(x_min, x_max, y_min, y_max))
+
+            body_arr = strip_whitespace(body_arr)
+            if len(body_arr) == 0:
+                # print("\nEMPTY\n")
+                continue
+
+            first_n = find_first_n(body_arr)
+            try:
+                body_arr = strip_line_numbers(body_arr, n=first_n)
+            except:
+                # print("\nNOT NUMBERED")
+                # print(body_arr[0])
+                # print(body_arr[1], '...\n')
+                continue
+            body_arr = strip_whitespace(body_arr)
+
+            # print(i, f'({x_min}, {x_max}, {y_min}, {y_max})')
+
+            transcript = ' '.join(body_arr)
+            transcript = re.sub(' +', ' ', transcript)
+            # print(len(transcript), 'letters')
+            page_transcripts.append(transcript)
 
     ret = ' '.join(page_transcripts)
     ret = re.sub(' +', ' ', ret)
