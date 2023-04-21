@@ -4,7 +4,8 @@ import requests
 
 from flask import Flask, request
 from flask_cors import CORS
-from plaintiff.read_america_cuaresma import read_text, read_pdf
+from util.summaries import pdf_summary
+from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT
 
 app = Flask(__name__)
 CORS(app)
@@ -40,8 +41,12 @@ def index():
         textblock = [k for k in form_data][0]
         
         return ",".join(read_text(textblock))
+
+@app.route("/summarize", methods=['GET'])
+def summarize_info():
+    return "Pass a FileInfo Record Id to summarize the file."
     
-@app.route("/<file_id>", methods=['GET'])
+@app.route("/summarize/<file_id>", methods=['GET'])
 def summarize(file_id: str):
     fname = file_id + '.pdf'
     if not os.path.isfile(fname):
@@ -62,5 +67,7 @@ def summarize(file_id: str):
 
         open(fname, 'wb').write(response.content)
     
-    read_pdf(fname)
-    
+    try:
+        return pdf_summary(fname, prompt=PLA_LIABILITY_PROMPT)
+    except:
+        return "Error in generating summary from PDF."

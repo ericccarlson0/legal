@@ -1,14 +1,13 @@
 import openai
 import util.setup_openai
 
-from plaintiff.plaintiffs import DEPO_DIR
 from util.str_util import cut_after_suffix, cut_before_prefix
 from util.token_util import divide_by_tokens
 from util.transcripts import depo_transcript_quarters
 
 def pdf_summary(fname: str, prompt: str, l_margin: int = 75, r_margin: int = 75, 
                 t_margin: int = 75, b_margin: int = 75) -> str:
-    transcript = depo_transcript_quarters(DEPO_DIR, fname, l_margin, r_margin, t_margin, b_margin)
+    transcript = depo_transcript_quarters(fname, l_margin, r_margin, t_margin, b_margin)
     transcript = cut_after_suffix(transcript)
     transcript = cut_before_prefix(transcript)
 

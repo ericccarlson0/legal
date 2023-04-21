@@ -1,7 +1,6 @@
 # import sys
 # sys.path.append(PROJECT_DIR) # FIXME
 
-import os
 import re
 
 from pypdf import PdfReader
@@ -20,9 +19,9 @@ def extract_dotted(s: str) -> str:
     
     return ' '.join(line_arr)
 
-def depo_transcript(depo_dir: str, fname: str, top_margin: int = 0, bottom_margin: int = 0, 
+def depo_transcript(fname: str, top_margin: int = 0, bottom_margin: int = 0, 
                     left_margin: int = 0, right_margin: int = 0) -> str:
-    reader = PdfReader(os.path.join(depo_dir, fname))
+    reader = PdfReader(fname)
 
     box = reader.pages[0].mediabox
     # print('w', box.width, 'h', box.height)
@@ -70,9 +69,9 @@ def depo_transcript(depo_dir: str, fname: str, top_margin: int = 0, bottom_margi
 
     return ret
 
-def depo_transcript_quarters(depo_dir: str, fname: str, l_margin: int = 75, r_margin: int = 75, 
+def depo_transcript_quarters(fname: str, l_margin: int = 75, r_margin: int = 75, 
                              t_margin: int = 75, b_margin: int = 75):
-    reader = PdfReader(os.path.join(depo_dir, fname))
+    reader = PdfReader(fname)
 
     box = reader.pages[0].mediabox
     # print('w', box.width, 'h', box.height)
