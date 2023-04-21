@@ -1,9 +1,10 @@
 import os
+import re
 import requests
 
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from flask_cors import CORS
-from plaintiff.read_america_cuaresma import read_text
+from plaintiff.read_america_cuaresma import read_text, read_pdf
 
 app = Flask(__name__)
 CORS(app)
@@ -40,16 +41,26 @@ def index():
         
         return ",".join(read_text(textblock))
     
-@app.route("/<file_id>", methods=['GET', 'POST'])
+@app.route("/<file_id>", methods=['GET'])
 def summarize(file_id: str):
-    if request.method == 'GET':
+    fname = file_id + '.pdf'
+    if not os.path.isfile(fname):
         headers = {
             'accept': 'application/json',
             'Authorization': 'Bearer ' + TOKEN
         }
         response = requests.get('https://api.339287139604.genesisapi.com/v1/files?Id=' + file_id,
                                 headers=headers)
-        return response.json()
+        signedUrl = response.json()['Records'][0]['SignedUrl']
+        response = requests.get(signedUrl, allow_redirects=True)
+        ct = response.headers.get('content-type')
+
+        if ct != 'application/pdf':
+            return "not application/pdf"
+        # cd = response.headers.get('content-disposition')
+        # filenames = re.findall('filename=(.+)', cd)
+
+        open(fname, 'wb').write(response.content)
     
-    elif request.method == 'POST':
-        raise Exception('POST not supported for summarize by file id (yet).')
+    read_pdf(fname)
+    
