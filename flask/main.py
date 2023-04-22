@@ -34,13 +34,13 @@ A. Of course. Yes, of course. Very perfectly well, yes.
 @app.route("/", methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        return ",".join(read_text(SAMPLE_TEXT))
+        return "index v4"
 
     elif request.method == 'POST':
         form_data = request.form
         textblock = [k for k in form_data][0]
         
-        return ",".join(read_text(textblock))
+        return "you posted " + textblock
 
 @app.route("/summarize", methods=['GET'])
 def summarize_info():
