@@ -2,6 +2,7 @@ import os
 import re
 import requests
 
+from auth.jwt import get_token
 from flask import Flask, request
 from flask_cors import CORS
 from util.summaries import pdf_summary
@@ -11,7 +12,7 @@ from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_POLICY_LIMIT_PROMPT, 
 app = Flask(__name__)
 CORS(app)
 
-TOKEN = os.environ["SF_CONNECTED_APP_TOKEN"]
+TOKEN = get_token()
 
 SAMPLE_TEXT = """
 Q. All right. Good morning. My name is Robin Ivey. I'm the attorney who is going to be taking your deposition this morning, and I represent the defendant in this lawsuit. Do you understand who I am and who I represent?
