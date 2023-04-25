@@ -5,7 +5,7 @@ import requests
 from flask import Flask, request
 from flask_cors import CORS
 from util.summaries import pdf_summary
-from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT
+from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_POLICY_LIMIT_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT, PLA_HEALTH_SYMPTOMS_PROMPT
 
 app = Flask(__name__)
 CORS(app)
@@ -44,7 +44,49 @@ def index():
 
 @app.route("/summarize", methods=['GET'])
 def summarize_info():
-    return "Pass a FileInfo Record Id to summarize the file."
+    return "Pass a FileInfo Record Id and Topic to summarize the file."
+
+@app.route("/summarize", methods=['POST'])
+def summarize_liability():
+    form_data = request.form
+
+    file_id = form_data["id"]
+    topic = form_data["topic"]
+    
+    fname = file_id + '.pdf'
+    if not os.path.isfile(fname):
+        headers = {
+            'accept': 'application/json',
+            'Authorization': 'Bearer ' + TOKEN
+        }
+        response = requests.get('https://api.339287139604.genesisapi.com/v1/files?Id=' + file_id,
+                                headers=headers)
+        signedUrl = response.json()['Records'][0]['SignedUrl']
+        response = requests.get(signedUrl, allow_redirects=True)
+        
+        ct = response.headers.get('content-type')
+        if ct != 'application/pdf':
+            return "not application/pdf"
+
+        open(fname, 'wb').write(response.content)
+
+    if topic == "LIABILITY":
+        prompt = PLA_LIABILITY_PROMPT
+    elif topic == "POLICY_LIMIT":
+        prompt = PLA_POLICY_LIMIT_PROMPT
+    elif topic == "DAMAGES":
+        prompt = PLA_DAMAGES_PROMPT
+    elif topic == "CREDIBILITY":
+        prompt = PLA_CREDIBILITY_PROMPT
+    elif topic == "MAJOR_PROBLEMS":
+        prompt = PLA_MAJOR_PROBLEMS_PROMPT
+    elif topic == "HEALTH_SYMPTOMS":
+        prompt = PLA_HEALTH_SYMPTOMS_PROMPT
+
+    try:
+        return pdf_summary(fname, prompt=prompt)
+    except:
+        return "Error in generating summary from PDF."
     
 @app.route("/summarize/<file_id>", methods=['GET'])
 def summarize(file_id: str):
@@ -58,8 +100,8 @@ def summarize(file_id: str):
                                 headers=headers)
         signedUrl = response.json()['Records'][0]['SignedUrl']
         response = requests.get(signedUrl, allow_redirects=True)
+        
         ct = response.headers.get('content-type')
-
         if ct != 'application/pdf':
             return "not application/pdf"
         # cd = response.headers.get('content-disposition')
