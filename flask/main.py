@@ -6,6 +6,7 @@ from flask import Flask, request
 from flask_cors import CORS
 from util.summaries import pdf_summary
 from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_POLICY_LIMIT_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT, PLA_HEALTH_SYMPTOMS_PROMPT
+from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_POLICY_LIMIT_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT, PLA_HEALTH_SYMPTOMS_PROMPT
 
 app = Flask(__name__)
 CORS(app)
@@ -100,6 +101,7 @@ def summarize_liability(file_id: str):
                                 headers=headers)
         signedUrl = response.json()['Records'][0]['SignedUrl']
         response = requests.get(signedUrl, allow_redirects=True)
+        
         
         ct = response.headers.get('content-type')
         if ct != 'application/pdf':
