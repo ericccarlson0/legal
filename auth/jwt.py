@@ -22,7 +22,7 @@ def jwt_to_token(curr_jwt: str) -> str:
         'assertion': curr_jwt,
     }
 
-    response = requests.post('https://reyeslaw--devgpt330.my.salesforce.com/services/oauth2/token',
+    response = requests.post('https://reyeslaw.my.salesforce.com/services/oauth2/token',
                             headers=headers,
                             data=data)
     try:
@@ -31,10 +31,14 @@ def jwt_to_token(curr_jwt: str) -> str:
         return None
 
 def get_jwt() -> str:
+    AUTH_DIR = os.getenv('SERVICE_AUTH_DIR')
+    if not os.path.isfile(AUTH_DIR + 'jwt.txt'):
+        return get_new_jwt()
+        
     with open (os.getenv('SERVICE_AUTH_DIR') + 'jwt.txt', 'r') as jwt_file:
         # print('JWT file exists.')
         curr_jwt = jwt_file.read()
-    # DEAL WITH CASE: NO ENVIRONMENT SET
+    
     return curr_jwt if curr_jwt else get_new_jwt()
 
 def get_new_jwt() -> str:
@@ -47,7 +51,7 @@ def get_new_jwt() -> str:
     payload = {
         'iss': ISS,
         'sub': SUB,
-        'aud': 'https://test.salesforce.com',
+        'aud': 'https://login.salesforce.com',
         'exp': str(int(time.time()) + 3600)
     }
 
@@ -65,7 +69,7 @@ def get_new_jwt() -> str:
             None
     with open(AUTH_DIR + 'jwt.txt', 'w') as jwt_file:
         jwt_file.write(token)
-    with open(AUTH_DIR, 'jwt.txt', 'r') as jwt_file:
-        print(jwt_file.read())
+    with open(AUTH_DIR + 'jwt.txt', 'r') as jwt_file:
+        print('Wrote JWT', jwt_file.read())
 
     return token
