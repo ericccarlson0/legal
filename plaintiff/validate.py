@@ -1,3 +1,5 @@
+import os
+
 from plaintiff.plaintiffs import DEPO_DIR
 from util.str_util import cut_after_suffix, cut_before_prefix
 from util.transcripts import depo_transcript, depo_transcript_quarters
@@ -21,9 +23,9 @@ args = [
 for i, (fname, t, b, r, l, quarters) in enumerate(args):
     print(f'({i}) {fname}')
     if quarters:
-        transcript = depo_transcript_quarters(DEPO_DIR, fname, t, b, r, l)
+        transcript = depo_transcript_quarters(os.path.join(DEPO_DIR, fname), t, b, r, l)
     else:
-        transcript = depo_transcript(DEPO_DIR, fname, t, b, r, l)
+        transcript = depo_transcript(os.path.join(DEPO_DIR, fname), t, b, r, l)
     prev_len = len(transcript)
     print(prev_len)
 

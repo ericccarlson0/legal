@@ -1,3 +1,5 @@
+import os
+
 from defendant.defendants import DEPO_DIR
 from util.str_util import cut_after_suffix, cut_before_prefix
 from util.transcripts import depo_transcript
@@ -11,7 +13,7 @@ args = [
 
 for i, (fname, t, b, r, l) in enumerate(args):
   print(f'({i}) {fname}')
-  transcript = depo_transcript(DEPO_DIR, fname, t, b, r, l)
+  transcript = depo_transcript(os.path.join(DEPO_DIR, fname), t, b, r, l)
   prev_len = len(transcript)
   print(prev_len)
 
