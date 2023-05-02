@@ -5,6 +5,8 @@ import jwt # PyJWT
 from cryptography.hazmat.primitives import serialization
 
 def get_token():
+    # print('get_token')
+    
     curr_jwt = get_jwt()
     curr_token = jwt_to_token(curr_jwt)
 
@@ -12,6 +14,8 @@ def get_token():
     return curr_token if curr_token else jwt_to_token(get_new_jwt())
 
 def jwt_to_token(curr_jwt: str) -> str:
+    # print('jwt_to_token')
+
     headers = { 
         'Content-Type': 'application/x-www-form-urlencoded',
         'accept': 'application/json',
@@ -31,17 +35,21 @@ def jwt_to_token(curr_jwt: str) -> str:
         return None
 
 def get_jwt() -> str:
+    # print('get_jwt')
+
     AUTH_DIR = os.getenv('SERVICE_AUTH_DIR')
     if not os.path.isfile(AUTH_DIR + 'jwt.txt'):
         return get_new_jwt()
         
-    with open (os.getenv('SERVICE_AUTH_DIR') + 'jwt.txt', 'r') as jwt_file:
+    with open (AUTH_DIR + 'jwt.txt', 'r') as jwt_file:
         # print('JWT file exists.')
         curr_jwt = jwt_file.read()
     
-    return curr_jwt if curr_jwt else get_new_jwt()
+    return curr_jwt
 
 def get_new_jwt() -> str:
+    # print('get_new_jwt')
+
     ISS = os.getenv('SERVICE_ISS')
     SUB = os.getenv('SERVICE_SUB')
     AUTH_DIR = os.getenv('SERVICE_AUTH_DIR')
@@ -70,6 +78,6 @@ def get_new_jwt() -> str:
     with open(AUTH_DIR + 'jwt.txt', 'w') as jwt_file:
         jwt_file.write(token)
     with open(AUTH_DIR + 'jwt.txt', 'r') as jwt_file:
-        print('Wrote JWT', jwt_file.read())
+        print('can read JWT', jwt_file.read())
 
     return token
