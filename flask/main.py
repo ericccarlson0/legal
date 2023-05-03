@@ -6,8 +6,7 @@ from auth.jwt import get_token
 from flask import Flask, request
 from flask_cors import CORS
 from util.summaries import pdf_summary
-from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_POLICY_LIMIT_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT, PLA_HEALTH_SYMPTOMS_PROMPT
-from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_POLICY_LIMIT_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT, PLA_HEALTH_SYMPTOMS_PROMPT
+from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT
 
 app = Flask(__name__)
 CORS(app)
@@ -72,18 +71,15 @@ def summarize():
 
         open(fname, 'wb').write(response.content)
 
+    # REMOVED POLICY_LIMIT, HEALTH_SYMPTOMS
     if topic == "LIABILITY":
         prompt = PLA_LIABILITY_PROMPT
-    elif topic == "POLICY_LIMIT":
-        prompt = PLA_POLICY_LIMIT_PROMPT
     elif topic == "DAMAGES":
         prompt = PLA_DAMAGES_PROMPT
     elif topic == "CREDIBILITY":
         prompt = PLA_CREDIBILITY_PROMPT
     elif topic == "MAJOR_PROBLEMS":
         prompt = PLA_MAJOR_PROBLEMS_PROMPT
-    elif topic == "HEALTH_SYMPTOMS":
-        prompt = PLA_HEALTH_SYMPTOMS_PROMPT
 
     try:
         return pdf_summary(fname, prompt=prompt)
