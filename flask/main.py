@@ -85,30 +85,3 @@ def summarize():
         return pdf_summary(fname, prompt=prompt)
     except:
         return "Error in generating summary from PDF."
-    
-@app.route("/summarize/<file_id>", methods=['GET'])
-def summarize_liability(file_id: str):
-    fname = file_id + '.pdf'
-    if not os.path.isfile(fname):
-        headers = {
-            'accept': 'application/json',
-            'Authorization': 'Bearer ' + TOKEN
-        }
-        response = requests.get('https://api.339287139604.genesisapi.com/v1/files?Id=' + file_id,
-                                headers=headers)
-        signedUrl = response.json()['Records'][0]['SignedUrl']
-        response = requests.get(signedUrl, allow_redirects=True)
-        
-        
-        ct = response.headers.get('content-type')
-        if ct != 'application/pdf':
-            return "not application/pdf"
-        # cd = response.headers.get('content-disposition')
-        # filenames = re.findall('filename=(.+)', cd)
-
-        open(fname, 'wb').write(response.content)
-    
-    try:
-        return pdf_summary(fname, prompt=PLA_LIABILITY_PROMPT)
-    except:
-        return "Error in generating summary from PDF."
