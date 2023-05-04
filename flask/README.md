@@ -17,3 +17,5 @@ This directory partly exists simply because text/code editors sometimes don't pl
 `mv legal/util/ .`
 `mv legal/auth .`
 `mv legal/flask/main.py .`
+
+`scp util/setup_openai.py '$REMOTE_USER@$REMOTE_ADDR:$REMOTE_PROJECT_DIR/util`
