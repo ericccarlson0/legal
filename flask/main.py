@@ -32,7 +32,7 @@ Q. And you understand that your testimony today would be the same kind of testim
 A. Of course. Yes, of course. Very perfectly well, yes.
 """
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/internal", methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
         return "index v4"
@@ -43,11 +43,11 @@ def index():
         
         return "you posted " + textblock
 
-@app.route("/summarize", methods=['GET'])
+@app.route("/internal/summarize", methods=['GET'])
 def summarize_info():
     return "Pass a FileInfo Record Id and Topic to summarize the file."
 
-@app.route("/summarize", methods=['POST'])
+@app.route("/internal/summarize", methods=['POST'])
 def summarize():
     form_data = request.form
 
