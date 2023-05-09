@@ -26,7 +26,8 @@ def jwt_to_token(curr_jwt: str) -> str:
         'assertion': curr_jwt,
     }
 
-    response = requests.post('https://reyeslaw.my.salesforce.com/services/oauth2/token',
+    BASE_URL = os.getenv('SALESFORCE_BASE_URL')
+    response = requests.post(BASE_URL + '/services/oauth2/token',
                             headers=headers,
                             data=data)
     try:
@@ -52,6 +53,7 @@ def get_new_jwt() -> str:
 
     ISS = os.getenv('SERVICE_ISS')
     SUB = os.getenv('SERVICE_SUB')
+    AUD = os.getenv('SERVICE_AUD')
     AUTH_DIR = os.getenv('SERVICE_AUTH_DIR')
 
     # header = { 'alg': 'RS256' }
@@ -59,7 +61,7 @@ def get_new_jwt() -> str:
     payload = {
         'iss': ISS,
         'sub': SUB,
-        'aud': 'https://login.salesforce.com',
+        'aud': AUD,
         'exp': str(int(time.time()) + 3600)
     }
 
