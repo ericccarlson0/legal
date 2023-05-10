@@ -4,6 +4,7 @@ import requests
 from auth.jwt import get_token
 
 GATEWAY = "https://api.214375601255.genesisapi.com/v1/"
+# https://api.339287139604.genesisapi.com/v1/
 
 def get_signed_url(file_id: int) -> str:
     TOKEN = get_token()
@@ -12,7 +13,7 @@ def get_signed_url(file_id: int) -> str:
         'accept': 'application/json',
         'Authorization': 'Bearer ' + TOKEN
     }
-    response = requests.get('https://api.339287139604.genesisapi.com/v1/files?Id=' + file_id,
+    response = requests.get(GATEWAY + 'files?Id=' + file_id,
                             headers=headers)
     return response.json()['Records'][0]['SignedUrl']
 
@@ -23,12 +24,12 @@ def upload_base64(fname: str, base64_str: str, content_type: str = 'application/
     headers = {
         'accept': 'application/json',
         'Authorization': 'Bearer ' + TOKEN,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
     }
 
     data = [ {
         "Name": fname,
-        "litify_docs__File_Type__c": "application/pdf"
+        "litify_docs__File_Type__c": content_type,
     } ]
     response = requests.post(GATEWAY + "files",
                              headers=headers,
