@@ -4,9 +4,8 @@ import requests
 from flask import Flask, request
 from flask_cors import CORS
 from util.summaries import pdf_summary
-from sf.docrio import get_signed_url
+from sf.docrio import get_signed_url, upload_base64
 from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT
-
 
 app = Flask(__name__)
 CORS(app)
@@ -86,3 +85,13 @@ def docrio_signed_url():
         return "no file ID received from GET request"
     
     return get_signed_url(file_id)
+
+@app.route("/internal/docrio/create", methods=['POST'])
+def docrio_create():
+    form_data = request.form
+
+    fname = form_data['fname']
+    base64_str = form_data['base64_str']
+    content_type = form_data['content_type']
+
+    return upload_base64(fname, base64_str, content_type=content_type)
