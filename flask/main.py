@@ -1,17 +1,15 @@
 import os
 import re
 import requests
-
-from auth.jwt import get_token
 from flask import Flask, request
 from flask_cors import CORS
 from util.summaries import pdf_summary
+from sf.docrio import get_signed_url
 from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT
+
 
 app = Flask(__name__)
 CORS(app)
-
-TOKEN = get_token()
 
 SAMPLE_TEXT = """
 Q. All right. Good morning. My name is Robin Ivey. I'm the attorney who is going to be taking your deposition this morning, and I represent the defendant in this lawsuit. Do you understand who I am and who I represent?
@@ -39,7 +37,7 @@ def index():
 
     elif request.method == 'POST':
         form_data = request.form
-        textblock = [k for k in form_data][0]
+        textblock = "\n".join([k for k in form_data])
         
         return "you posted " + textblock
 
@@ -56,14 +54,8 @@ def summarize():
     
     fname = file_id + '.pdf'
     if not os.path.isfile(fname):
-        headers = {
-            'accept': 'application/json',
-            'Authorization': 'Bearer ' + TOKEN
-        }
-        response = requests.get('https://api.339287139604.genesisapi.com/v1/files?Id=' + file_id,
-                                headers=headers)
-        signedUrl = response.json()['Records'][0]['SignedUrl']
-        response = requests.get(signedUrl, allow_redirects=True)
+        signed_url = get_signed_url(file_id)
+        response = requests.get(signed_url, allow_redirects=True)
         
         ct = response.headers.get('content-type')
         if ct != 'application/pdf':
@@ -85,3 +77,12 @@ def summarize():
         return pdf_summary(fname, prompt=prompt)
     except:
         return "Error in generating summary from PDF."
+
+@app.route("/internal/docrio/signed_url", methods=['GET'])
+def docrio_signed_url():
+    file_id = request.args.get("id", default=0, type=int)
+
+    if file_id == 0:
+        return "no file ID received from GET request"
+    
+    return get_signed_url(file_id)
