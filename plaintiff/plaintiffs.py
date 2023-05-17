@@ -5,6 +5,12 @@ Your role is to extract any mention of liability in the deposition.
 If the plaintiff mentions liability, quote the passage.
 """
 
+PLA_LIABILITY_SUMMARY = """
+You will be provided a number of summaries of subsequent sections of a deposition in a personal injury case.
+There should be a Part 1, Part 2, and so on.
+Your role is to extract any mention of liability in the deposition by combining these summaries into a smaller summary.
+"""
+
 # PLA_POLICY_LIMIT_PROMPT = """
 # Extract information related to policy limits from the deposition of a plaintiff in a personal injury case.
 # The fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
