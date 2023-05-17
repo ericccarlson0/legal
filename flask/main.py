@@ -1,11 +1,8 @@
-import os
-import re
-import requests
 from flask import Flask, request
 from flask_cors import CORS
-from util.summaries import pdf_summary
-from sf.docrio import get_signed_url, upload_base64
-from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT
+from util.summaries import get_pdf_summary, get_text_summary
+from sf.docrio import check_download, get_signed_url, upload_base64
+from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_LIABILITY_SUMMARY, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_MAJOR_PROBLEMS_PROMPT
 
 app = Flask(__name__)
 CORS(app)
@@ -52,30 +49,36 @@ def summarize():
     topic = form_data["topic"]
     
     fname = file_id + '.pdf'
-    if not os.path.isfile(fname):
-        signed_url = get_signed_url(file_id)
-        response = requests.get(signed_url, allow_redirects=True)
-        
-        ct = response.headers.get('content-type')
-        if ct != 'application/pdf':
-            return "not application/pdf"
-
-        open(fname, 'wb').write(response.content)
+    try:
+        check_download(file_id, fname)
+    except Exception as e:
+        return f"File Download did not work. (Is the FileInfo ID incorrect?)\n{e}"
 
     # REMOVED POLICY_LIMIT, HEALTH_SYMPTOMS
     if topic == "LIABILITY":
         prompt = PLA_LIABILITY_PROMPT
+        summary_in_parts = get_pdf_summary(fname, prompt=prompt)
+        return get_text_summary(summary_in_parts, PLA_LIABILITY_SUMMARY)
+
     elif topic == "DAMAGES":
         prompt = PLA_DAMAGES_PROMPT
+        # summary_in_parts = get_pdf_summary(fname, prompt=prompt)
+        # return get_text_summary(summary_in_parts, PLA_DAMAGES_SUMMARY)
+    
     elif topic == "CREDIBILITY":
         prompt = PLA_CREDIBILITY_PROMPT
-    elif topic == "MAJOR_PROBLEMS":
+        # summary_in_parts = get_pdf_summary(fname, prompt=prompt)
+        # return get_text_summary(summary_in_parts, PLA_CREDIBILITY_SUMMARY)
+    
+    elif topic == "PROBLEMS":
         prompt = PLA_MAJOR_PROBLEMS_PROMPT
+        # summary_in_parts = get_pdf_summary(fname, prompt=prompt)
+        # return get_text_summary(summary_in_parts, PLA_PROBLEMS_SUMMARY)
 
     try:
-        return pdf_summary(fname, prompt=prompt)
-    except:
-        return "Error in generating summary from PDF."
+        return get_pdf_summary(fname, prompt=prompt)
+    except Exception as e:
+        return f"Error in generating summary from PDF.\n{e}"
 
 @app.route("/internal/docrio/signed_url", methods=['GET'])
 def docrio_signed_url():
