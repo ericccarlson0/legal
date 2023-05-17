@@ -1,8 +1,7 @@
-# import sys
-# sys.path.append(PROJECT_DIR) # FIXME
-
+import os
 import re
 
+from sf.docrio import FILE_INFO_DIR
 from pypdf import PdfReader
 from util.str_util import strip_whitespace, strip_line_numbers, is_numbered, find_first_n
 
@@ -71,7 +70,7 @@ def depo_transcript(fname: str, top_margin: int = 0, bottom_margin: int = 0,
 
 def depo_transcript_quarters(fname: str, l_margin: int = 75, r_margin: int = 75, 
                              t_margin: int = 75, b_margin: int = 75):
-    reader = PdfReader(fname)
+    reader = PdfReader(os.path.join(FILE_INFO_DIR, fname))
 
     box = reader.pages[0].mediabox
     # print('w', box.width, 'h', box.height)
