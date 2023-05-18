@@ -32,13 +32,10 @@ def get_signed_url(file_id: int) -> str:
                             headers=headers)
     return response.json()['Records'][0]['SignedUrl']
 
-def upload_base64(fname: str, base64_str: str, content_type: str = 'application/pdf'):
-    TOKEN = get_token()
-
-    # POST TO FILES
+def init_file_apigateway(fname: str, content_type: str, token: str):
     headers = {
         'accept': 'application/json',
-        'Authorization': 'Bearer ' + TOKEN,
+        'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json',
     }
 
@@ -46,15 +43,14 @@ def upload_base64(fname: str, base64_str: str, content_type: str = 'application/
         "Name": fname,
         "litify_docs__File_Type__c": content_type,
     } ]
+
     response = requests.post(GATEWAY + "files",
                              headers=headers,
                              data=json.dumps(data))
-    print('POST to /files', response)
-    resp_dict = json.loads(response.content.decode('utf-8'))
-    id = resp_dict[fname]['Id']
-    signed_url = resp_dict[fname]['SignedUrl']
+    
+    return response
 
-    # UPLOAD FILE
+def upload_file_apigateway(signed_url: str, base64_str: str, content_type: str):
     headers = {
         'Content-Type': content_type
     }
@@ -64,12 +60,13 @@ def upload_base64(fname: str, base64_str: str, content_type: str = 'application/
         data=base64.b64decode(base64_str), # TODO
         headers=headers,
     )
-    print('upload to SignedURL', response)
 
-    # POST TO FILES/COMPLETE
+    return response
+
+def complete_file_apigateway(id: str, token: str):
     headers = {
         'accept': 'application/json',
-        'Authorization': 'Bearer ' + TOKEN,
+        'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json',
     }
 
@@ -78,6 +75,23 @@ def upload_base64(fname: str, base64_str: str, content_type: str = 'application/
     response = requests.post(GATEWAY + "files/complete",
                              headers=headers,
                              data=json.dumps(data))
+    
+    return response
+
+def upload_base64(fname: str, base64_str: str, content_type: str = 'application/pdf'):
+    token = get_token()
+
+    response = init_file_apigateway(fname, content_type, token)
+    print('POST to /files', response)
+
+    resp_dict = json.loads(response.content.decode('utf-8'))
+    id = resp_dict[fname]['Id']
+    signed_url = resp_dict[fname]['SignedUrl']
+
+    response = upload_file_apigateway(signed_url, base64_str, content_type)
+    print('POST to SignedURL', response)
+
+    response = complete_file_apigateway(id, token)
     print('POST to /files/complete', response)
 
     return response.content
