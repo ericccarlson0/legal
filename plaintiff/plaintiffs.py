@@ -87,18 +87,26 @@ use the following summarized sections to produce a final list of bullet-points.
 
 ## PROBLEMS
 
-PLA_PROBLEMS_PROMPT = """
-This is a fragment of a deposition which consists of a series of questions (preceded by "Q.") followed by the plaintiff's answers (preceded by "A.").
-Tell whether there are any major inconsistencies in the answers of the plaintiff.
-In particular, note whether the plaintiff had relevant pre-existing conditions, previous or subsequent collisions, alcohol or drug use (time of the collision), delay in treatment, or gaps in treatment.
+PLA_PROB_FF_PROMPT = """
+The following is a fragment of a deposition which consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
+Tell whether there are any "major problems" in the answers of the plaintiff.
+In particular, note whether the plaintiff had pre-existing conditions, previous or subsequent collisions, alcohol or drug use (time of the collision), delay in treatment, or gaps in treatment.
 """
 
-PLA_PROBLEMS_SUMMARY = PLA_FF_SUMMARY_PREFIX + "Your role is to extract information related to major inconsistencies (e.g. pre-existing conditions, previous or subsequent collisions, alcohol or drug use, and delay or gaps in treatment) by combining these summaries into a smaller summary."
+PLA_PROB_FF_SUMMARY = PLA_FF_SUMMARY_PREFIX + """
+Your role is to extract the "major problems" (pre-existing conditions, previous or subsequent collisions, alcohol or drug use, and delay or gaps in treatment) in the answers of the plaintiff;
+use the following summarized sections to produce a final summary.
+"""
 
-# PLA_HEALTH_SYMPTOMS_PROMPT = """
-# Extract information related to the health and symptoms of the plaintiff in a personal injury case.
-# This is a fragment of a deposition which constists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-# Report any mention of health or symptoms by the plaintiff.
-# """
+PLA_PROB_BP_PROMPT = """
+The following is a fragment of a deposition which consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
+Produce a bullet-point for each "major problem" in the answers of the plaintiff.
+In particular, note whether the plaintiff had pre-existing conditions, previous or subsequent collisions, alcohol or drug use (time of the collision), delay in treatment, or gaps in treatment.
+"""
+
+PLA_PROB_BP_SUMMARY = """
+Your role is to extract the "major problems" (pre-existing conditions, previous or subsequent collisions, alcohol or drug use, and delay or gaps in treatment) in the answers of the plaintiff;
+use the following summarized sections to produce a final list of bullet-points.
+"""
 
 DEPO_DIR = "/Users/ericcarlson/Downloads/Depos/Plaintiff"
