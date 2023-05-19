@@ -9,18 +9,20 @@ Each summarized section consists of a set of important bullet-points.
 In addition, each summarized section is preceded by 'Part 1', 'Part 2', and so on.
 """
 
+## LIABILITY
+
 # PLAINTIFF LIABILITY FREE-FORM PROMPT
 PLA_LIA_FF_PROMPT = """
 Your role is to extract any mention of liability in the following deposition (of a plaintiff in a personal injury case).
-The plaintiff's deposition consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-Produce a summary of each mention of liability (and quote passages if possible).
+The fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
+Produce a summary of each mention of liability by the plaintiff (and quote passages if possible).
 """
 
 # PLAINTIFF LIABILITY BULLET-POINT PROMPT
 PLA_LIA_BP_PROMPT = """
 Your role is to extract any mention of liability in the following deposition (of a plaintiff in a personal injury case).
-The plaintiff's deposition consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-Produce a list of bulled-points with each relevant mention of liability (and quote passages if possible).
+The fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
+Produce a bullet-point for each relevant mention of liability (and quote passages if possible).
 """
 
 PLA_LIA_FF_SUMMARY = PLA_FF_SUMMARY_PREFIX + """
@@ -28,22 +30,34 @@ Your role is to extract any mention of liability in the deposition, using the fo
 """
 
 PLA_LIA_BP_SUMMARY = PLA_BP_SUMMARY_PREFIX + """
-Your role is to extract any mention of liability in the deposition, using the following summarized sections to produce a final summary.
+Your role is to extract any mention of liability in the deposition;
+use the following summarized sections to produce a final list of bullet-points.
 """
 
-# PLA_POLICY_LIMIT_PROMPT = """
-# Extract information related to policy limits from the deposition of a plaintiff in a personal injury case.
-# The fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-# Tell whether there is any mention of policy limits and, if so, summarize it.
-# """
+## DAMAGES
 
-PLA_DAMAGES_PROMPT = """
-Extract information related to damages from the deposition of a plaintiff in a personal injury case.
+PLA_DAM_FF_PROMPT = """
+Your role is to information related to damages in the following deposition (of a plaintiff in a personal injury case).
 The fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-Summarize the damages mentioned by the plaintiff.
+Produce a summary of each mention of damages by the plaintiff (and quote passages if possible).
 """
 
-PLA_DAMAGES_SUMMARY = PLA_FF_SUMMARY_PREFIX + "Your role is to extract any mention of damages in the deposition by combining these summaries into a smaller summary."
+PLA_DAM_BP_PROMPT = """
+Your role is to extract any mention of damages in the following deposition (of a plaintiff in a personal injury case).
+The fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
+Produce a bullet-point for each relevant mention of damages (and quote passages if possible).
+"""
+
+PLA_DAM_FF_SUMMARY = PLA_FF_SUMMARY_PREFIX + """
+Your role is to extract any mention of damages in the deposition, using the following summarized sections to produce a final summary.
+"""
+
+PLA_DAM_BP_SUMMARY = PLA_BP_SUMMARY_PREFIX + """
+Your role is to extract any mention of damages in the deposition;
+use the following summarized sections to produce a final list of bullet-points.
+"""
+
+## CREDIBILITY
 
 PLA_CREDIBILITY_PROMPT = """
 Extract information related to the credibility of the plaintiff in a personal injury case.
