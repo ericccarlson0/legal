@@ -2,11 +2,14 @@ from flask import Flask, request
 from flask_cors import CORS
 from util.summaries import get_pdf_summary, get_text_summary
 from sf.docrio import check_download, get_signed_url, upload_base64
-from plaintiff.plaintiffs import PLA_LIABILITY_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_PROBLEMS_PROMPT
-from plaintiff.plaintiffs import PLA_LIABILITY_SUMMARY, PLA_DAMAGES_SUMMARY, PLA_CREDIBILITY_SUMMARY, PLA_PROBLEMS_SUMMARY
+from plaintiff.plaintiffs import PLA_LIA_FF_PROMPT, PLA_DAMAGES_PROMPT, PLA_CREDIBILITY_PROMPT, PLA_PROBLEMS_PROMPT
+from plaintiff.plaintiffs import PLA_LIA_BP_PROMPT
+from plaintiff.plaintiffs import PLA_LIA_FF_SUMMARY, PLA_DAMAGES_SUMMARY, PLA_CREDIBILITY_SUMMARY, PLA_PROBLEMS_SUMMARY
+from plaintiff.plaintiffs import PLA_LIA_BP_SUMMARY
 
 prompts_map = {
-    "LIABILITY": [PLA_LIABILITY_PROMPT, PLA_LIABILITY_SUMMARY],
+    "LIABILITY": [PLA_LIA_BP_PROMPT, PLA_LIA_BP_SUMMARY],
+    # [PLA_LIA_FF_PROMPT, PLA_LIA_FF_SUMMARY],
     "DAMAGES": [PLA_DAMAGES_PROMPT, PLA_DAMAGES_SUMMARY],
     "CREDIBILITY": [PLA_CREDIBILITY_PROMPT, PLA_CREDIBILITY_SUMMARY],
     "PROBLEMS": [PLA_PROBLEMS_PROMPT, PLA_PROBLEMS_SUMMARY]
@@ -68,6 +71,7 @@ def summarize():
     try:
         p1, p2 = prompts_map[topic]
         summary_in_parts = get_pdf_summary(fname, prompt=p1)
+
         return get_text_summary(summary_in_parts, p2, do_seg=False)
 
     except Exception as e:

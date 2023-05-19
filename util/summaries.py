@@ -18,8 +18,7 @@ def get_text_summary(input: str, prompt: str, do_seg: bool = True) -> str:
         segments = divide_by_tokens(input, 3072)
         ret = ""
         for i, s in enumerate(segments):
-            print(i)
-
+            # print(i)
             content = get_completion(s, prompt)
             # print(content)
             ret += f'Part {i+1}. {content}\n'
