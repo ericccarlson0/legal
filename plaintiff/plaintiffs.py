@@ -1,3 +1,5 @@
+## PREFIXES
+
 PLA_FF_SUMMARY_PREFIX = """
 In the previous step, you summarized a sequence of sections of a deposition (of a plaintiff in a personal injury case).
 Each summarized section is preceded by 'Part 1', 'Part 2', and so on.
@@ -26,7 +28,8 @@ Produce a bullet-point for each relevant mention of liability (and quote passage
 """
 
 PLA_LIA_FF_SUMMARY = PLA_FF_SUMMARY_PREFIX + """
-Your role is to extract any mention of liability in the deposition, using the following summarized sections to produce a final summary.
+Your role is to extract any mention of liability in the deposition;
+use the following summarized sections to produce a final summary.
 """
 
 PLA_LIA_BP_SUMMARY = PLA_BP_SUMMARY_PREFIX + """
@@ -49,7 +52,8 @@ Produce a bullet-point for each relevant mention of damages (and quote passages 
 """
 
 PLA_DAM_FF_SUMMARY = PLA_FF_SUMMARY_PREFIX + """
-Your role is to extract any mention of damages in the deposition, using the following summarized sections to produce a final summary.
+Your role is to extract any mention of damages in the deposition;
+use the following summarized sections to produce a final summary.
 """
 
 PLA_DAM_BP_SUMMARY = PLA_BP_SUMMARY_PREFIX + """
@@ -59,14 +63,29 @@ use the following summarized sections to produce a final list of bullet-points.
 
 ## CREDIBILITY
 
-PLA_CREDIBILITY_PROMPT = """
-Extract information related to the credibility of the plaintiff in a personal injury case.
+PLA_CRED_FF_PROMPT = """
+Your role is to extract information related to the credibility of the plaintiff in a personal injury case.
 This is a fragment of a deposition which consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-Tell whether the plaintiff is being truthful.
-In particular, note questions which are avoided or are not answered directly.
+Note, in particular, whether any questions are avoided or not answered directly.
 """
 
-PLA_CREDIBILITY_SUMMARY = PLA_FF_SUMMARY_PREFIX + "Your role is to extract information related to the credibility of the plaintiff (for instance, which questions are avoided or not answered directly) by combining these summaries into a smaller summary."
+PLA_CRED_FF_SUMMARY = PLA_FF_SUMMARY_PREFIX + """
+Your role is to extract information related to the credibility of the plaintiff in the deposition (for instance, whether questions are avoided or not answered directly);
+use the following summarized sections to produce a final summary.
+"""
+
+PLA_CRED_BP_PROMPT = """
+Your role is to extract information related to the credibility of the plaintiff in a personal injury case.
+The following deposition fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
+Produce a bullet point for each relevant piece of information (and quote passages if possible).
+"""
+
+PLA_CRED_BP_SUMMARY = PLA_BP_SUMMARY_PREFIX + """
+Your role is to extract information related to the credibility of the plaintiff in the deposition (for instance, whether questions are avoided or not answered directly);
+use the following summarized sections to produce a final list of bullet-points.
+"""
+
+## PROBLEMS
 
 PLA_PROBLEMS_PROMPT = """
 This is a fragment of a deposition which consists of a series of questions (preceded by "Q.") followed by the plaintiff's answers (preceded by "A.").
