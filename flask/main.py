@@ -17,7 +17,7 @@ prompts_map = {
 }
 
 app = Flask(__name__)
-app.register_blueprint(prompts_bp, url_prefix="prompts")
+app.register_blueprint(prompts_bp, url_prefix="/internal/prompts")
 # print(app.url_map)
 CORS(app)
 

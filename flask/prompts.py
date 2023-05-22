@@ -4,6 +4,10 @@ from plaintiff.plaintiffs import *
 # url_prefix="prompts"
 bp = Blueprint("prompts", __name__)
 
+@bp.route('/')
+def index():
+    return "LIABILITY, DAMAGES, CREDIBILITY, PROBLEMS"
+
 @bp.route('/liability')
 def liability():
     return PLA_LIA_BP_PROMPT
