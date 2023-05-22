@@ -1,5 +1,6 @@
 from flask import Flask, request
 from flask_cors import CORS
+from prompts import bp as prompts_bp
 from util.summaries import get_pdf_summary, get_text_summary
 from sf.docrio import check_download, get_signed_url, upload_base64
 from plaintiff.plaintiffs import PLA_LIA_FF_PROMPT, PLA_DAM_FF_PROMPT, PLA_CRED_FF_PROMPT, PLA_PROB_FF_PROMPT
@@ -19,6 +20,8 @@ prompts_map = {
 }
 
 app = Flask(__name__)
+app.register_blueprint(prompts_bp, url_prefix="prompts")
+# print(app.url_map)
 CORS(app)
 
 SAMPLE_TEXT = """
