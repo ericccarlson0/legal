@@ -106,7 +106,9 @@ possible_suffixes = [
     "I have us off record at",
     "(End of proceedings",
     "End of proceedings",
-    "Deposition adjourned"
+    "Deposition adjourned",
+    "The deposition concluded",
+    "CHANGES AND SIGNATURE",
 ]
 def cut_after_suffix(s: str) -> str:
     for suffix in possible_suffixes:
