@@ -10,6 +10,7 @@ from sf.docrio import FILE_INFO_DIR
 def get_pdf_summary(fname: str, prompt: str, l_margin: int = 75, r_margin: int = 75, 
                 t_margin: int = 75, b_margin: int = 75) -> str:
     full_path = os.path.join(FILE_INFO_DIR, fname)
+    # FIXME
     if pdf_has_text(full_path):
         transcript = depo_transcript_quarters(full_path, l_margin, r_margin, t_margin, b_margin)
     else:
@@ -25,6 +26,7 @@ def get_text_summary(input: str, prompt: str, do_seg: bool = True) -> str:
         segments = divide_by_tokens(input, MAGIC_NUMBER)
         ret = ""
         for i, s in enumerate(segments):
+            print('segment', i)
             content = get_completion(s, prompt)
             ret += f'Part {i+1}.\n{content}\n'
         
@@ -38,9 +40,13 @@ def get_completion(s: str, prompt: str):
         {"role": "user", "content": s}
     ]
 
-    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo",
-                                            messages=messages,
-                                            temperature=.2)
+    try:
+        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo",
+                                                messages=messages,
+                                                temperature=.2)
+    except openai.error.InvalidRequestError as e:
+        raise Exception(f'{e}\nWith text,\n{s}')
+
     print('usage', completion.usage)
     content = completion.choices[0].message.content
 
