@@ -17,4 +17,4 @@ It consists of a series of questions (marked "Q.") and answers (marked "A.").
 Based on how the witness would look to a jury, score the witness on a scale of 1 to 10.
 """
 
-DEPO_DIR = "/Users/ericcarlson/Downloads/Depos/Defendant"
+DEPO_DIR = "/Users/ericcarlson/Desktop/Reyes Browne/Depos/Defendant"
