@@ -37,7 +37,7 @@ fnames = [
 ]
 
 for fname in fnames:
-    reader = PdfReader(os.path.join("/Users/ericcarlson/Desktop/Reyes Browne/Depos/Plaintiff", fname))
+    reader = PdfReader(os.path.join(DEPO_DIR, fname))
     count = 0
     for i, p in enumerate(reader.pages):
         extracted = p.extract_text() # extract_text(0)

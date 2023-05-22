@@ -1,13 +1,20 @@
 import openai
+import os
 import util.setup_openai
 
 from util.str_util import cut_after_suffix, cut_before_prefix
 from util.token_util import divide_by_tokens
-from util.transcripts import depo_transcript_quarters
+from util.transcripts import pdf_has_text, depo_transcript_ocr, depo_transcript_quarters, MAGIC_NUMBER
+from sf.docrio import FILE_INFO_DIR
 
 def get_pdf_summary(fname: str, prompt: str, l_margin: int = 75, r_margin: int = 75, 
                 t_margin: int = 75, b_margin: int = 75) -> str:
-    transcript = depo_transcript_quarters(fname, l_margin, r_margin, t_margin, b_margin)
+    full_path = os.path.join(FILE_INFO_DIR, fname)
+    if pdf_has_text(full_path):
+        transcript = depo_transcript_quarters(full_path, l_margin, r_margin, t_margin, b_margin)
+    else:
+        transcript = depo_transcript_ocr(full_path)
+    
     transcript = cut_after_suffix(transcript)
     transcript = cut_before_prefix(transcript)
 
@@ -15,13 +22,11 @@ def get_pdf_summary(fname: str, prompt: str, l_margin: int = 75, r_margin: int =
 
 def get_text_summary(input: str, prompt: str, do_seg: bool = True) -> str:
     if do_seg:
-        segments = divide_by_tokens(input, 3072)
+        segments = divide_by_tokens(input, MAGIC_NUMBER)
         ret = ""
         for i, s in enumerate(segments):
-            # print(i)
             content = get_completion(s, prompt)
-            # print(content)
-            ret += f'Part {i+1}. {content}\n'
+            ret += f'Part {i+1}.\n{content}\n'
         
         return ret
     
