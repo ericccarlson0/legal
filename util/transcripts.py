@@ -47,10 +47,7 @@ def depo_transcript(fname: str, top_margin: int = 0, bottom_margin: int = 0,
             continue
 
         if not is_numbered(body_arr):
-            print("NOT NUMBERED")
-            # print(body_arr[0])
-            # print(body_arr[1])
-            # print(body_arr[2], '...')
+            print("\nNOT NUMBERED")
             continue
 
         first_n = find_first_n(body_arr)
@@ -64,7 +61,7 @@ def depo_transcript(fname: str, top_margin: int = 0, bottom_margin: int = 0,
         page_transcripts.append(transcript)
 
     ret = ' '.join(page_transcripts)
-    ret = re.sub(' +', ' ', ret)
+    ret = re.sub('\s+', ' ', ret)
 
     return ret
 
@@ -114,20 +111,18 @@ def depo_transcript_quarters(fname: str, l_margin: int = 75, r_margin: int = 75,
                 body_arr = strip_line_numbers(body_arr, n=first_n)
             except:
                 print("\nNOT NUMBERED")
-                # print(body_arr[0])
-                # print(body_arr[1])
-                # print(body_arr[2], '...')
                 continue
+
             body_arr = strip_whitespace(body_arr)
 
             # print(i, f'({x_min}, {x_max}, {y_min}, {y_max})')
 
             transcript = ' '.join(body_arr)
-            transcript = re.sub(' +', ' ', transcript)
+            transcript = re.sub('\s+', ' ', transcript)
             # print(len(transcript), 'letters')
             page_transcripts.append(transcript)
 
     ret = ' '.join(page_transcripts)
-    ret = re.sub(' +', ' ', ret)
+    ret = re.sub('\s+', ' ', ret)
 
     return ret
