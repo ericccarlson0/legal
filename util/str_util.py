@@ -1,5 +1,7 @@
 from typing import List, Tuple
 
+MAX_CUT_LEN = 8192
+
 # FUNCTION TO STRIP WHITESPACE
 def strip_whitespace(line_arr: List[str]) -> List[str]:
     ret = []
@@ -68,8 +70,6 @@ def string_after(s: str, prefix: str, include: bool = False) -> str:
     
     raise Exception(f'Did not find prefix {prefix}.')
 
-MAX_CUT_LEN = 8192
-# TODO: Ask the AI to cut out the introduction?
 possible_prefixes = [
     "P R O C E E D I N G S",
     "P R O C E E D I N G",
@@ -82,6 +82,7 @@ possible_prefixes = [
     "Formal Federal deposition read-in waived by all parties present",
     "THE REPORTER: We are on the record",
     "COURT REPORTER: Today's date",
+    "The witness will now be sworn in",
 ]
 def cut_before_prefix(s: str) -> str:
     for prefix in possible_prefixes:
@@ -105,6 +106,7 @@ possible_suffixes = [
     "I have us off record at",
     "(End of proceedings",
     "End of proceedings",
+    "Deposition adjourned"
 ]
 def cut_after_suffix(s: str) -> str:
     for suffix in possible_suffixes:
