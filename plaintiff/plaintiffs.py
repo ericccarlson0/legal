@@ -109,4 +109,4 @@ Your role is to extract the "major problems" (pre-existing conditions, previous 
 use the following summarized sections to produce a final list of bullet-points.
 """
 
-DEPO_DIR = "/Users/ericcarlson/Downloads/Depos/Plaintiff"
+DEPO_DIR = "/Users/ericcarlson/Desktop/Reyes Browne/Depos/Plaintiff"
