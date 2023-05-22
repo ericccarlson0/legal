@@ -85,15 +85,38 @@ possible_prefixes = [
     "The witness will now be sworn in",
 ]
 def cut_before_prefix(s: str) -> str:
+    cut = len(s) // 2
+    s_pre = s[:-cut]
+    s_pre_rev = s_pre[::-1]
+
+    min_x = 0
+    min_prefix = ''
+
     for prefix in possible_prefixes:
-        l = len(prefix)
-        cut_len = min((len(s) - l) // 2, MAX_CUT_LEN)
-        for i in range(cut_len):
-            if s[i: i+l] == prefix:
-                return s[i+l: ]
-        # print('did not find', prefix)
+        prefix_rev = prefix[::-1]
+        x = s_pre_rev.find(prefix_rev)
+        if x < min_x:
+            min_x = x
+            min_prefix = prefix
+
+        # l = len(prefix)
+        # cut_len = (len(s) - l) // 2
+
+        # for i in range(max_prefix, cut_len):
+        #     if s[i: i+l] == prefix:
+        #         max_i = i
+        #         max_prefix = prefix
+        #         break # return s[i+l: ]
     
-    return s
+    print('prefix', min_prefix)
+    l = len(min_prefix)
+
+    c = cut+min_x+l
+    # if c > 64:
+    #     print(s[-c:-c+64])
+    print(len(s), '->', len(s) - c, 'by removing prefix')
+
+    return s[ :-c]
 
 possible_suffixes = [
     "THE REPORTER: Off the record",
@@ -111,15 +134,36 @@ possible_suffixes = [
     "CHANGES AND SIGNATURE",
 ]
 def cut_after_suffix(s: str) -> str:
+    cut = len(s) // 2
+    s_end = s[cut:]
+
+    min_x = len(s_end)
+    min_suffix = ''
+
     for suffix in possible_suffixes:
-        l = len(suffix)
-        cut_len = min((len(s) - l) // 2, MAX_CUT_LEN)
-        for i in range(len(s), len(s) - cut_len, -1):
-            if (s[i-l :i] == suffix):
-                return s[ :i-l]
-        # print('did not find', suffix)
+        x = s_end.find(suffix)
+        if x < min_x:
+            min_x = x
+            min_suffix = suffix
+
+        # l = len(suffix)
+        # cut_len = (len(s) - l) // 2
+
+        # for i in range(min_i, len(s) - cut_len, -1):
+        #     if (s[i-l :i] == suffix):
+        #         min_i = i
+        #         min_suffix = suffix
+        #         break # return s[ :i-l]
     
-    return s
+    print('suffix', min_suffix)
+    l = len(min_suffix)
+
+    c = cut+min_x+l
+    # if c >= 64:
+    #     print(s[c-64:c], '...')
+    print(len(s), '->', len(s) - c, 'by removing suffix')
+    
+    return s[c: ]
 
 
 # FUNCTION TO CUT TEXT WITH TOO MANY TOKENS
