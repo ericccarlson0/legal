@@ -3,10 +3,7 @@ from flask_cors import CORS
 from prompts import bp as prompts_bp
 from util.summaries import get_pdf_summary, get_text_summary
 from sf.docrio import check_download, get_signed_url, upload_base64
-from plaintiff.plaintiffs import PLA_LIA_FF_PROMPT, PLA_DAM_FF_PROMPT, PLA_CRED_FF_PROMPT, PLA_PROB_FF_PROMPT
-from plaintiff.plaintiffs import PLA_LIA_BP_PROMPT, PLA_DAM_BP_PROMPT, PLA_CRED_BP_PROMPT, PLA_PROB_BP_PROMPT
-from plaintiff.plaintiffs import PLA_LIA_FF_SUMMARY, PLA_DAM_FF_SUMMARY, PLA_CRED_FF_SUMMARY, PLA_PROB_FF_SUMMARY
-from plaintiff.plaintiffs import PLA_LIA_BP_SUMMARY, PLA_DAM_BP_SUMMARY, PLA_CRED_BP_SUMMARY, PLA_PROB_BP_SUMMARY
+from plaintiff.plaintiffs import *
 
 prompts_map = {
     "LIABILITY": [PLA_LIA_BP_PROMPT, PLA_LIA_BP_SUMMARY],
