@@ -75,7 +75,7 @@ possible_prefixes = [
     "P R O C E E D I N G",
     "PROCEEDINGS",
     "PROCEEDING",
-    "THE REPORTER",
+    # "THE REPORTER",
     "(On the record",
     "On the record",
     "(Formal Federal deposition read-in waived by all parties present",
@@ -85,19 +85,23 @@ possible_prefixes = [
     "The witness will now be sworn in",
 ]
 def cut_before_prefix(s: str) -> str:
-    cut = len(s) // 2
-    s_pre = s[:-cut]
+    cut = len(s) // 3
+    anti_cut = len(s) - cut
+
+    s_pre = s[:cut]
     s_pre_rev = s_pre[::-1]
 
-    min_x = 0
-    min_prefix = ''
+    min_x = len(s_pre)
+    min_prefix = '*'
 
     for prefix in possible_prefixes:
         prefix_rev = prefix[::-1]
         x = s_pre_rev.find(prefix_rev)
-        if x < min_x:
+        if x >= 0 and x < min_x:
             min_x = x
             min_prefix = prefix
+            # FIXME
+            print(f'{prefix} == {s_pre_rev[x: x + len(prefix)]}', flush=True)
 
         # l = len(prefix)
         # cut_len = (len(s) - l) // 2
@@ -108,15 +112,17 @@ def cut_before_prefix(s: str) -> str:
         #         max_prefix = prefix
         #         break # return s[i+l: ]
     
-    print('prefix', min_prefix)
     l = len(min_prefix)
+    c = anti_cut+min_x+l
 
-    c = cut+min_x+l
+    print(f'prefix {min_prefix} @ {-c}', flush=True)
+    print(f'prefix == {s[-c: -c+l]}?', flush=True)
     # if c > 64:
     #     print(s[-c:-c+64])
-    print(len(s), '->', len(s) - c, 'by removing prefix')
 
-    return s[ :-c]
+    print(f'{len(s)} -> {c} by removing prefix', flush=True)
+
+    return s[-c: ]
 
 possible_suffixes = [
     "THE REPORTER: Off the record",
@@ -132,19 +138,23 @@ possible_suffixes = [
     "Deposition adjourned",
     "The deposition concluded",
     "CHANGES AND SIGNATURE",
+    "The deposition is done",
 ]
 def cut_after_suffix(s: str) -> str:
-    cut = len(s) // 2
-    s_end = s[cut:]
+    cut = len(s) // 3
+    anti_cut = len(s) - cut
+    s_end = s[-cut:]
 
     min_x = len(s_end)
-    min_suffix = ''
+    min_suffix = '*'
 
     for suffix in possible_suffixes:
         x = s_end.find(suffix)
-        if x < min_x:
+        if x >= 0 and x < min_x:
             min_x = x
             min_suffix = suffix
+            # FIXME
+            print(f'{suffix} == {s_end[x: x + len(suffix)]}', flush=True)
 
         # l = len(suffix)
         # cut_len = (len(s) - l) // 2
@@ -155,16 +165,17 @@ def cut_after_suffix(s: str) -> str:
         #         min_suffix = suffix
         #         break # return s[ :i-l]
     
-    print('suffix', min_suffix)
     l = len(min_suffix)
+    c = anti_cut+min_x
 
-    c = cut+min_x+l
+    print(f'suffix {min_suffix} @ {c}', flush=True)
+    print(f'suffix {s[c : c+l]}?', flush=True)
     # if c >= 64:
     #     print(s[c-64:c], '...')
-    print(len(s), '->', len(s) - c, 'by removing suffix')
-    
-    return s[c: ]
 
+    print(f'{len(s)} -> {c} by removing suffix', flush=True)
+    
+    return s[ :c]
 
 # FUNCTION TO CUT TEXT WITH TOO MANY TOKENS
 def cut_at_q(s: str) -> Tuple[str, str]:
