@@ -75,7 +75,7 @@ def transcribe():
         return f"File Transcript did not work.\n{e}"
     
     if finished:
-        return jsonify({ finished: True })
+        return jsonify({ "finished": True })
 
     print('async celery transcript')
     celery_transcript.delay(file_id) # FIXME
