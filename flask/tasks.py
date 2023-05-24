@@ -21,7 +21,7 @@ celery_app = Celery(
 # celery_app.AsyncResult(res.id)
 
 @celery_app.task(ignore_result=True)
-def transcript(file_id: int):
+def celery_transcript(file_id: int):
     write_transcript(file_id)
 
 if __name__ == '__main__':
