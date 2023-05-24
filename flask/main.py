@@ -3,7 +3,7 @@ from flask_cors import CORS
 from plaintiff.plaintiffs import *
 from prompts import bp as prompts_bp
 from sf.docrio import check_pdf_download, get_signed_url, upload_base64
-from tasks import celery_app
+from tasks import celery_transcript
 from util.summaries import get_file_summary, get_text_summary
 from util.transcripts import check_transcript
 
@@ -57,7 +57,7 @@ def summarize():
     except Exception as e:
         return f"Error in generating summary from PDF.\n{e}"
 
-@app.route("/internal/transcribe", method=['POST'])
+@app.route("/internal/transcribe", methods=['POST'])
 def transcribe():
     form_data = request.form
     file_id = form_data["id"]
@@ -78,9 +78,9 @@ def transcribe():
         return jsonify({ finished: True })
 
     print('async celery transcript')
-    celery_app.transcript.delay(file_id) # FIXME
+    celery_transcript.delay(file_id) # FIXME
     
-    return jsonify({ finished: False })
+    return jsonify({ "finished": False })
 
 @app.route("/internal/docrio/signed_url", methods=['GET'])
 def docrio_signed_url():
