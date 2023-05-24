@@ -2,16 +2,18 @@ import base64
 import os
 import json
 import requests
+
 from auth.jwt import get_token
+from util.directories import FILE_INFO_DIR
 
 GATEWAY = "https://api.339287139604.genesisapi.com/v1/"
 if os.environ.get('DEV_ENV'):
     GATEWAY = "https://api.214375601255.genesisapi.com/v1/"
 
-FILE_INFO_DIR = 'downloaded-file-info'
+def check_pdf_download(file_id: int):
+    fpath = os.path.join(FILE_INFO_DIR, f'{file_id}.pdf')
 
-def check_download(file_id: int, fname: str):
-    if not os.path.isfile(fname):
+    if not os.path.isfile(fpath):
         signed_url = get_signed_url(file_id)
         response = requests.get(signed_url, allow_redirects=True)
         
@@ -19,7 +21,7 @@ def check_download(file_id: int, fname: str):
         if ct != 'application/pdf':
             return "not application/pdf"
 
-        open(os.path.join(FILE_INFO_DIR, fname), 'wb').write(response.content)
+        open(fpath, 'wb').write(response.content)
 
 def get_signed_url(file_id: int) -> str:
     TOKEN = get_token()

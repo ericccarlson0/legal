@@ -11,9 +11,9 @@ args = [
   ["Bridget Clower Full.pdf", 0, 0, 0, 0]
 ]
 
-for i, (fname, t, b, r, l) in enumerate(args):
-  print(f'({i}) {fname}')
-  transcript = depo_transcript(os.path.join(DEPO_DIR, fname), t, b, r, l)
+for i, (pdf_fpath, t, b, r, l) in enumerate(args):
+  print(f'({i}) {pdf_fpath}')
+  transcript = depo_transcript(os.path.join(DEPO_DIR, pdf_fpath), t, b, r, l)
   prev_len = len(transcript)
   print(prev_len)
 

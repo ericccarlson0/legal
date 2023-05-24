@@ -3,7 +3,7 @@ import os
 from plaintiff.plaintiffs import DEPO_DIR
 from pypdf import PdfReader
 from util.str_util import cut_after_suffix, cut_before_prefix
-from util.transcripts import depo_transcript, depo_transcript_quarters
+from util.transcripts import depo_transcript, transcript_quarters
 
 args = [
     ["America Cuaresma Full.pdf", 75, 75, 75, 75, True],
@@ -36,14 +36,14 @@ fnames = [
     "Tiwan Spencer Full.pdf",
 ]
 
-for fname in fnames:
-    reader = PdfReader(os.path.join(DEPO_DIR, fname))
+for pdf_fpath in fnames:
+    reader = PdfReader(os.path.join(DEPO_DIR, pdf_fpath))
     count = 0
     for i, p in enumerate(reader.pages):
         extracted = p.extract_text() # extract_text(0)
         count += len(extracted)
     
-    print(count, fname)
+    print(count, pdf_fpath)
 
 # for i, (fname, t, b, r, l, quarters) in enumerate(args):
 #     print(f'({i}) {fname}')

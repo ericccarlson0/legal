@@ -2,22 +2,14 @@ import openai
 import os
 import util.setup_openai
 
-from util.str_util import cut_after_suffix, cut_before_prefix
+from util.directories import TRANSCRIBE_TEXT_DIR
 from util.token_util import divide_by_tokens
-from util.transcripts import pdf_has_text, depo_transcript_ocr, depo_transcript_quarters, MAGIC_NUMBER
-from sf.docrio import FILE_INFO_DIR
+from util.transcripts import depo_transcript, MAGIC_NUMBER
 
-def get_pdf_summary(fname: str, prompt: str, l_margin: int = 75, r_margin: int = 75, 
-                t_margin: int = 75, b_margin: int = 75) -> str:
-    full_path = os.path.join(FILE_INFO_DIR, fname)
-    # FIXME
-    if pdf_has_text(full_path):
-        transcript = depo_transcript_quarters(full_path, l_margin, r_margin, t_margin, b_margin)
-    else:
-        transcript = depo_transcript_ocr(full_path)
-    
-    transcript = cut_after_suffix(transcript)
-    transcript = cut_before_prefix(transcript)
+def get_file_summary(fname_prefix: str, prompt: str) -> str:
+    fpath = os.path.join(TRANSCRIBE_TEXT_DIR, f'{fname_prefix}.txt')
+    with open(fpath, 'r') as f:
+        transcript = f.read()
 
     return get_text_summary(transcript, prompt)
 

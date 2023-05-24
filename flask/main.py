@@ -1,9 +1,11 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from prompts import bp as prompts_bp
-from util.summaries import get_pdf_summary, get_text_summary
-from sf.docrio import check_download, get_signed_url, upload_base64
 from plaintiff.plaintiffs import *
+from prompts import bp as prompts_bp
+from sf.docrio import check_pdf_download, get_signed_url, upload_base64
+from tasks import celery_app
+from util.summaries import get_file_summary, get_text_summary
+from util.transcripts import check_transcript
 
 prompts_map = {
     "LIABILITY": [PLA_LIA_BP_PROMPT, PLA_LIA_BP_SUMMARY],
@@ -20,25 +22,6 @@ app = Flask(__name__)
 app.register_blueprint(prompts_bp, url_prefix="/internal/prompts")
 # print(app.url_map)
 CORS(app)
-
-SAMPLE_TEXT = """
-Q. All right. Good morning. My name is Robin Ivey. I'm the attorney who is going to be taking your deposition this morning, and I represent the defendant in this lawsuit. Do you understand who I am and who I represent?
-A. No. I don't know whom you are representing.
-Q. Okay. So you understand that you had filed the lawsuit, correct?
-A. Yes.
-Q. Okay. And then that you sued a person, correct?
-A. Yes.
-Q. Okay. So I represent that person.
-A. That's okay.
-Q. All right. So you understand who I am and who I represent?
-A. Yes. Yes. Yes. Now, I understand.
-Q. Okay. Have you ever had your deposition taken before?
-A. No. No.
-Q. Okay. So I'm going to go over a few rules. So, Number One, you understand that you're under oath, right? 
-. Correct. And I understand that perfectly well.
-Q. And you understand that your testimony today would be the same kind of testimony if you were in front of a judge or a jury?
-A. Of course. Yes, of course. Very perfectly well, yes.
-"""
 
 @app.route("/internal", methods=['GET', 'POST'])
 def index():
@@ -61,24 +44,43 @@ def summarize():
 
     file_id = form_data["id"]
     topic = form_data["topic"]
-    
-    fname = file_id + '.pdf'
-    try:
-        check_download(file_id, fname)
-    except Exception as e:
-        return f"File Download did not work. (Is the FileInfo ID incorrect?)\n{e}"
 
     if topic not in prompts_map:
-        return f"{topic} not in " + ",".join([k for k in prompts_map.keys])
+        return f"{topic} not in " + ",".join([k for k in prompts_map.keys()])
     
     try:
         p1, p2 = prompts_map[topic]
-        summary_in_parts = get_pdf_summary(fname, prompt=p1)
+        summary_in_parts = get_file_summary(file_id, prompt=p1)
 
         return get_text_summary(summary_in_parts, p2, do_seg=False)
 
     except Exception as e:
         return f"Error in generating summary from PDF.\n{e}"
+
+@app.route("/internal/transcribe", method=['POST'])
+def transcribe():
+    form_data = request.form
+    file_id = form_data["id"]
+
+    try:
+        check_pdf_download(file_id)
+    except Exception as e:
+        # FIXME: JSON
+        return f"File Download did not work. (Is the FileInfo ID incorrect?)\n{e}"
+
+    try:
+        finished = check_transcript(file_id)
+    except Exception as e:
+        # FIXME: JSON
+        return f"File Transcript did not work.\n{e}"
+    
+    if finished:
+        return jsonify({ finished: True })
+
+    print('async celery transcript')
+    celery_app.transcript.delay(file_id) # FIXME
+    
+    return jsonify({ finished: False })
 
 @app.route("/internal/docrio/signed_url", methods=['GET'])
 def docrio_signed_url():

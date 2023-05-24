@@ -1,8 +1,0 @@
-Policy gradient methods work by computing an estimator of the policy gradient and plugging it into a stochastic gradient ascent algorithm.
-The most commonly used gradient estimator g^ is the expectation of the gradient of A times the log of Pi,
-where Pi is a stochastic policy and A is an estimator of the advantage function at timestep t.
-Here, the expectation indicates the empirical average over a finite batch of samples, in an algorithm that alternates between sampling and optimization.
-Implementations that use automatic differentiation software work by constructing an objective function whose gradient is the policy gradient estimator.
-The estimator g^ is obtained by differentiating the objective L^PG, which is A times the log of Pi.
-While it is appealing to perform multiple steps of optimization on this loss LPG using the same trajectory, doing so is not well-justified, and empirically it often leads to destructively large policy updates.
-(See Section 6.1, results are not shown but were similar or worse than the "no clipping or penalty" setting.)
