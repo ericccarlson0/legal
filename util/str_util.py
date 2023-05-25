@@ -100,25 +100,13 @@ def cut_before_prefix(s: str) -> str:
         if x >= 0 and x < min_x:
             min_x = x
             min_prefix = prefix
-            # FIXME
-            print(f'{prefix} == {s_pre_rev[x: x + len(prefix)]}', flush=True)
-
-        # l = len(prefix)
-        # cut_len = (len(s) - l) // 2
-
-        # for i in range(max_prefix, cut_len):
-        #     if s[i: i+l] == prefix:
-        #         max_i = i
-        #         max_prefix = prefix
-        #         break # return s[i+l: ]
+            # print(f'{prefix} == {s_pre_rev[x: x + len(prefix)][::-1]}', flush=True)
     
     l = len(min_prefix)
     c = anti_cut+min_x+l
 
     print(f'prefix {min_prefix} @ {-c}', flush=True)
-    print(f'prefix == {s[-c: -c+l]}?', flush=True)
-    # if c > 64:
-    #     print(s[-c:-c+64])
+    # print(f'prefix == {s[-c: -c+l]}?', flush=True)
 
     print(f'{len(s)} -> {c} by removing prefix', flush=True)
 
@@ -153,25 +141,13 @@ def cut_after_suffix(s: str) -> str:
         if x >= 0 and x < min_x:
             min_x = x
             min_suffix = suffix
-            # FIXME
-            print(f'{suffix} == {s_end[x: x + len(suffix)]}', flush=True)
-
-        # l = len(suffix)
-        # cut_len = (len(s) - l) // 2
-
-        # for i in range(min_i, len(s) - cut_len, -1):
-        #     if (s[i-l :i] == suffix):
-        #         min_i = i
-        #         min_suffix = suffix
-        #         break # return s[ :i-l]
+            # print(f'{suffix} == {s_end[x: x + len(suffix)]}', flush=True)
     
     l = len(min_suffix)
     c = anti_cut+min_x
 
     print(f'suffix {min_suffix} @ {c}', flush=True)
-    print(f'suffix {s[c : c+l]}?', flush=True)
-    # if c >= 64:
-    #     print(s[c-64:c], '...')
+    # print(f'suffix {s[c : c+l]}?', flush=True)
 
     print(f'{len(s)} -> {c} by removing suffix', flush=True)
     
