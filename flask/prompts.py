@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, request
+from flask import Blueprint
 from plaintiff.plaintiffs import *
 
 # url_prefix="prompts"
