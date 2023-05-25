@@ -1,15 +1,11 @@
-import cv2
 import os
-import pytesseract
 import re
 
-from pathlib import Path
-from pdf2image import convert_from_path
 from pypdf import PdfReader
 
 from util.str_util import strip_whitespace, strip_line_numbers, is_numbered, find_first_n
 from util.str_util import cut_after_suffix, cut_before_prefix
-from util.directories import TRANSCRIBE_TEXT_DIR, FILE_INFO_DIR
+from util.directories import TRANSCRIPT_FULL_DIR, TRANSCRIPT_COND_DIR
 
 class NoPdfTextException(Exception):
     pass
@@ -21,22 +17,13 @@ TEMP_DIR = os.path.join(os.getcwd(), "temp")
 if not os.path.isdir(TEMP_DIR):
     os.mkdir(TEMP_DIR)
 
-def check_transcript(fname_prefix: str):
-    return os.path.isfile(os.path.join(TRANSCRIBE_TEXT_DIR, f'{fname_prefix}.txt'))
+def check_transcript_p1(file_id: str):
+    return os.path.isfile(os.path.join(TRANSCRIPT_FULL_DIR, f'{file_id}.txt'))
 
-def write_transcript(fname_prefix: str):
-    pdf_fpath = os.path.join(FILE_INFO_DIR, f'{fname_prefix}.pdf')
-    print(f'pdf fpath {pdf_fpath}', flush=True)
-    transcript = condensed_transcript(pdf_fpath)
+def check_transcript_p2(file_id: str):
+    return os.path.isfile(os.path.join(TRANSCRIPT_COND_DIR, f'{file_id}.txt'))
 
-    txt_fpath = os.path.join(TRANSCRIBE_TEXT_DIR, f'{fname_prefix}.txt')
-    print(f'txt fpath {txt_fpath}', flush=True)
-    Path(txt_fpath).touch()
-    with open(txt_fpath, 'w') as f:
-        f.write(transcript)
-
-def condensed_transcript(fpath: str) -> str:
-    transcript = depo_transcript(fpath)
+def condensed_transcript(transcript: str) -> str:
     transcript = cut_after_suffix(transcript)
     transcript = cut_before_prefix(transcript)
 
@@ -63,12 +50,10 @@ def extract_dotted(s: str) -> str:
             curr += c
     
     return ' '.join(line_arr)
-
-def depo_transcript(fpath: str, l_margin: int = 0, r_margin: int = 0, t_margin: int = 0, b_margin: int = 0) -> str:
     if pdf_has_text(fpath):
         return transcript_quarters(fpath, l_margin, r_margin, t_margin, b_margin)
     else:
-        return transcript_ocr(fpath, l_margin, r_margin, t_margin, b_margin)
+        return transcript_ocr(fpath)
 
 def transcript_quarters(fpath: str, l_margin: int = 0, r_margin: int = 0, t_margin: int = 0, b_margin: int = 0):
     reader = PdfReader(fpath)
@@ -162,32 +147,6 @@ def transcript_single(fpath: str, l_margin: int = 0, r_margin: int = 0, t_margin
         transcript = ' '.join(body_arr)
         page_transcripts.append(transcript)
 
-    ret = ' '.join(page_transcripts)
-    ret = re.sub('\s+', ' ', ret)
-
-    return ret
-
-def transcript_ocr(fname: str):
-    pages = convert_from_path(fname)
-
-    page_transcripts = []
-    for i, p in enumerate(pages):
-        print(i, flush=True)
-        
-        fname = os.path.join(TEMP_DIR, f'{i}.jpeg')
-        p.save(fname, 'JPEG')
-
-        arr = cv2.imread(fname)
-        _, arr = cv2.threshold(arr, 130, 255, cv2.THRESH_BINARY)
-        arr = arr[100:-100, 100:-100, :] # TODO: 100 OK?
-
-        transcript = pytesseract.image_to_string(arr) # TODO: OEM? PSM 5?
-        transcript = re.sub('\s+', ' ', transcript)
-        page_transcripts.append(transcript)
-
-    for i in range(len(pages)):
-        os.remove(os.path.join(TEMP_DIR, f'{i}.jpeg'))
-    
     ret = ' '.join(page_transcripts)
     ret = re.sub('\s+', ' ', ret)
 

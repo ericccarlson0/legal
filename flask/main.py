@@ -1,22 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from plaintiff.plaintiffs import *
 from prompts import bp as prompts_bp
 from sf.docrio import check_pdf_download, get_signed_url, upload_base64
-from tasks import celery_transcript
-from util.summaries import get_file_summary, get_text_summary
-from util.transcripts import check_transcript
-
-prompts_map = {
-    "LIABILITY": [PLA_LIA_BP_PROMPT, PLA_LIA_BP_SUMMARY],
-    # [PLA_LIA_FF_PROMPT, PLA_LIA_FF_SUMMARY],
-    "DAMAGES": [PLA_DAM_BP_PROMPT, PLA_DAM_BP_SUMMARY],
-    # [PLA_DAM_FF_PROMPT, PLA_DAM_FF_SUMMARY],
-    "CREDIBILITY": [PLA_CRED_BP_PROMPT, PLA_CRED_BP_SUMMARY], 
-    # [PLA_CRED_FF_PROMPT, PLA_CRED_FF_SUMMARY],
-    "PROBLEMS": [PLA_PROB_BP_PROMPT, PLA_PROB_BP_SUMMARY],
-    # [PLA_PROB_FF_PROMPT, PLA_PROB_FF_SUMMARY]
-}
+from tasks import c_transcript_p1, c_transcript_p2, c_summarize
+from util.transcripts import check_transcript_p1, check_transcript_p2
+from util.summaries import check_summary
 
 app = Flask(__name__)
 app.register_blueprint(prompts_bp, url_prefix="/internal/prompts")
@@ -44,18 +32,16 @@ def summarize():
 
     file_id = form_data["id"]
     topic = form_data["topic"]
-
-    if topic not in prompts_map:
-        return f"{topic} not in " + ",".join([k for k in prompts_map.keys()])
     
-    try:
-        p1, p2 = prompts_map[topic]
-        summary_in_parts = get_file_summary(file_id, prompt=p1)
+    summary = check_summary(file_id, topic)
+    if not summary:
+        c_summarize.delay(file_id, topic)
+        return { "finished": False }
 
-        return get_text_summary(summary_in_parts, p2, do_seg=False)
-
-    except Exception as e:
-        return f"Error in generating summary from PDF.\n{e}"
+    return { 
+        "finished": True,
+        "summary": summary,
+    }
 
 @app.route("/internal/transcribe", methods=['POST'])
 def transcribe():
@@ -65,22 +51,39 @@ def transcribe():
     try:
         check_pdf_download(file_id)
     except Exception as e:
-        # FIXME: JSON
-        return f"File Download did not work. (Is the FileInfo ID incorrect?)\n{e}"
+        message = f"File Download did not work. (Is the FileInfo ID incorrect?)\n{e}"
+        return jsonify({ "error": message })
 
     try:
-        finished = check_transcript(file_id)
+        finished = check_transcript_p1(file_id)
     except Exception as e:
-        # FIXME: JSON
-        return f"File Transcript did not work.\n{e}"
+        message =  f"File Transcript did not work (stage 1).\n{e}"
+        return jsonify({ "error": message })
     
-    if finished:
-        return jsonify({ "finished": True })
+    if not finished:
+        print('async transcript, stage 1')
+        c_transcript_p1.delay(file_id)
+        # FIXME
+        return jsonify({
+                "finished": False,
+                "stage": 1,
+            })
+    
+    try:
+        finished = check_transcript_p2(file_id)
+    except Exception as e:
+        message =  f"File Transcript did not work (stage 2).\n{e}"
+        return jsonify({ "error": message })
 
-    print('async celery transcript')
-    celery_transcript.delay(file_id) # FIXME
-    
-    return jsonify({ "finished": False })
+    if not finished:
+        print('async transcript, stage 2')
+        c_transcript_p2.delay(file_id)
+        return jsonify({
+            "finished": False,
+            "stage": 2,
+        })
+
+    return jsonify({ "finished": True })
 
 @app.route("/internal/docrio/signed_url", methods=['GET'])
 def docrio_signed_url():

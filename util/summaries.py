@@ -2,12 +2,12 @@ import openai
 import os
 import util.setup_openai
 
-from util.directories import TRANSCRIBE_TEXT_DIR
+from util.directories import TRANSCRIPT_COND_DIR, SUMMARY_FINAL_DIR
 from util.token_util import divide_by_tokens
-from util.transcripts import depo_transcript, MAGIC_NUMBER
+from util.transcripts import MAGIC_NUMBER
 
 def get_file_summary(fname_prefix: str, prompt: str) -> str:
-    fpath = os.path.join(TRANSCRIBE_TEXT_DIR, f'{fname_prefix}.txt')
+    fpath = os.path.join(TRANSCRIPT_COND_DIR, f'{fname_prefix}.txt')
     with open(fpath, 'r') as f:
         transcript = f.read()
 
@@ -18,8 +18,9 @@ def get_text_summary(input: str, prompt: str, do_seg: bool = True) -> str:
         segments = divide_by_tokens(input, MAGIC_NUMBER)
         ret = ""
         for i, s in enumerate(segments):
-            print('segment', i)
+            print(f'segment {i}', flush=True)
             content = get_completion(s, prompt)
+            print(f'done, segment {i}', flush=True)
             ret += f'Part {i+1}.\n{content}\n'
         
         return ret
@@ -43,3 +44,13 @@ def get_completion(s: str, prompt: str):
     content = completion.choices[0].message.content
 
     return content
+
+def check_summary(file_id: str, topic: str) -> str:
+    summary_fpath = os.path.join(SUMMARY_FINAL_DIR, f'{file_id}-{topic}.txt')
+    if not os.path.isfile(summary_fpath):
+        return None
+    
+    with open(summary_fpath) as f:
+        ret = f.read()
+
+    return ret
