@@ -14,3 +14,8 @@ downloads
 downloads/*
 transcripts
 transcripts/*
+summaries-final/*
+summaries-int/*
+transcripts-full/*
+transcripts-cond/*
+dump.rdb
