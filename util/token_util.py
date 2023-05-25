@@ -1,6 +1,3 @@
-# import sys
-# sys.path.append(PROJECT_DIR) # FIXME
-
 from typing import List
 from util.str_util import count_spaces
 
@@ -8,7 +5,6 @@ from util.str_util import count_spaces
 def divide_by_tokens(s: str, max_tokens: int) -> List[str]:
     spaces = count_spaces(s)
     n_segments = spaces // max_tokens + 1
-    print(n_segments, 'segments')
 
     segments = []
     prev_p = 0
