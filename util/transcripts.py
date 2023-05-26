@@ -17,10 +17,19 @@ TEMP_DIR = os.path.join(os.getcwd(), "temp")
 if not os.path.isdir(TEMP_DIR):
     os.mkdir(TEMP_DIR)
 
-def check_transcript_p1(file_id: str):
+def check_transcript(file_id: str) -> bool:
+    fpath = os.path.join(TRANSCRIPT_COND_DIR, f'{file_id}.txt')
+    if not (os.path.isfile(fpath)):
+        return False
+    
+    with open(fpath) as f:
+        cond_transcript = f.read()
+        return len(cond_transcript) > 0
+
+def check_transcript_p1_file(file_id: str):
     return os.path.isfile(os.path.join(TRANSCRIPT_FULL_DIR, f'{file_id}.txt'))
 
-def check_transcript_p2(file_id: str):
+def check_transcript_p2_file(file_id: str):
     return os.path.isfile(os.path.join(TRANSCRIPT_COND_DIR, f'{file_id}.txt'))
 
 def condensed_transcript(transcript: str) -> str:

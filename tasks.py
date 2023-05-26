@@ -10,7 +10,7 @@ from pdf2image import pdfinfo_from_path, convert_from_path
 from plaintiff.plaintiffs import *
 from util.directories import *
 from util.summaries import get_file_summary, get_text_summary
-from util.transcripts import pdf_has_text, transcript_quarters, condensed_transcript
+from util.transcripts import *
 
 # A temporary path for intermediate files.
 TEMP_DIR = os.path.join(os.getcwd(), "temp")
@@ -44,11 +44,44 @@ celery_app = Celery(
 
 # `celery -A your_application.celery worker`
 # `celery multi start w1 -A proj -l INFO --pidfile=/var/run/celery/%n.pid --logfile=/var/log/celery/%n%I.log`
-# res = tasks.<METHOD>.delay(*args)
 # celery_app.AsyncResult(res.id)
 
 MEDIUM_TIME = 4
 SMALL_TIME = 2
+# FIXME
+
+@celery_app.task
+def c_transcript(file_id: int):
+    if not check_transcript_p1_file(file_id):
+        res = c_transcript_p1.delay(file_id)
+
+        await_count = 0
+        while not res.ready():
+            if res.status == 'FAILURE':
+                break
+            time.sleep(MEDIUM_TIME)
+            await_count += 1
+            print(f'await (c_transcript wait on p1) {await_count}', flush=True)
+        print(f'result {res.result}', flush=True)
+
+    if not check_transcript_p2_file(file_id):
+        res = c_transcript_p2.delay(file_id)
+
+        await_count = 0
+        while not res.ready():
+            if res.status == 'FAILURE':
+                break
+            time.sleep(MEDIUM_TIME)
+            await_count += 1
+            print(f'await (c_transcript wait on p2) {await_count}', flush=True)
+        print(f'result {res.result}', flush=True) 
+
+    # except Exception as e:
+    #     message =  f"File Transcript did not work (stage 1).\n{e}"
+        
+    # except Exception as e:
+    #     message =  f"File Transcript did not work (stage 2).\n{e}"
+    #     return jsonify({ "error": message })
 
 @celery_app.task
 def c_transcript_p1(file_id: int):
@@ -56,6 +89,7 @@ def c_transcript_p1(file_id: int):
     print(f'pdf fpath {pdf_fpath}', flush=True)
 
     if pdf_has_text(pdf_fpath):
+        # FIXME
         transcript = transcript_quarters(pdf_fpath)
     else:
         ocr_res = c_transcript_ocr.delay(pdf_fpath)
@@ -63,7 +97,7 @@ def c_transcript_p1(file_id: int):
             if ocr_res.status == 'FAILURE':
                 break
             time.sleep(MEDIUM_TIME)
-            print('await ocr res', flush=True)
+            print('await (c_transcript_p1)', flush=True)
         transcript = ocr_res.result
 
     txt_full_fpath = os.path.join(TRANSCRIPT_FULL_DIR, f'{file_id}.txt')

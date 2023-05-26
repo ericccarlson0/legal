@@ -2,8 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from prompts import bp as prompts_bp
 from sf.docrio import check_pdf_download, get_signed_url, upload_base64
-from tasks import c_transcript_p1, c_transcript_p2, c_summarize
-from util.transcripts import check_transcript_p1, check_transcript_p2
+from tasks import c_transcript, c_summarize
+from util.transcripts import check_transcript
 from util.summaries import check_summary
 
 app = Flask(__name__)
@@ -54,34 +54,12 @@ def transcribe():
         message = f"File Download did not work. (Is the FileInfo ID incorrect?)\n{e}"
         return jsonify({ "error": message })
 
-    try:
-        finished = check_transcript_p1(file_id)
-    except Exception as e:
-        message =  f"File Transcript did not work (stage 1).\n{e}"
-        return jsonify({ "error": message })
-    
-    if not finished:
-        print('async transcript, stage 1')
-        c_transcript_p1.delay(file_id)
-        # FIXME
-        return jsonify({
-                "finished": False,
-                "stage": 1,
-            })
-    
-    try:
-        finished = check_transcript_p2(file_id)
-    except Exception as e:
-        message =  f"File Transcript did not work (stage 2).\n{e}"
-        return jsonify({ "error": message })
+    finished = check_transcript(file_id)
 
     if not finished:
-        print('async transcript, stage 2')
-        c_transcript_p2.delay(file_id)
-        return jsonify({
-            "finished": False,
-            "stage": 2,
-        })
+        print('No transcript.')
+        c_transcript.delay(file_id)
+        return jsonify({ "finished": False })
 
     return jsonify({ "finished": True })
 
