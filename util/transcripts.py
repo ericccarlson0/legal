@@ -10,7 +10,7 @@ from util.directories import TRANSCRIPT_FULL_DIR, TRANSCRIPT_COND_DIR
 class NoPdfTextException(Exception):
     pass
     
-MAGIC_NUMBER = 3072
+MAGIC_NUMBER = 2560
 
 # A temporary path for intermediate files.
 TEMP_DIR = os.path.join(os.getcwd(), "temp")
