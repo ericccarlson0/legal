@@ -46,9 +46,9 @@ celery_app = Celery(
 # `celery multi start w1 -A proj -l INFO --pidfile=/var/run/celery/%n.pid --logfile=/var/log/celery/%n%I.log`
 # celery_app.AsyncResult(res.id)
 
+SMALL_TIME = 1
 MEDIUM_TIME = 4
-SMALL_TIME = 2
-# FIXME
+LONG_TIME = 16
 
 @celery_app.task
 def c_transcript(file_id: int):
