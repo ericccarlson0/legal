@@ -93,11 +93,14 @@ def c_transcript_p1(file_id: int):
         transcript = transcript_quarters(pdf_fpath)
     else:
         ocr_res = c_transcript_ocr.delay(pdf_fpath)
+
+        await_count = 0
         while not ocr_res.ready():
             if ocr_res.status == 'FAILURE':
                 break
             time.sleep(MEDIUM_TIME)
-            print('await (c_transcript_p1)', flush=True)
+            await_count += 1
+            print(f'await (c_transcript_p1) {await_count}', flush=True)
         transcript = ocr_res.result
 
     txt_full_fpath = os.path.join(TRANSCRIPT_FULL_DIR, f'{file_id}.txt')
@@ -195,7 +198,7 @@ def c_transcript_ocr(fname: str):
         res = c_transcript_ocr_in_range.delay(fname, p, min(p+PAGE_GROUP_N-1, n_pages))
         async_results.append(res)
 
-        time.sleep(SMALL_TIME)
+        time.sleep(MEDIUM_TIME)
     
     n = len(async_results)
 
