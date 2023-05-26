@@ -133,7 +133,7 @@ def c_transcript_p2(file_id: int):
 
 @celery_app.task
 def c_transcript_ocr_single_page(fpath, s: int):
-    converted_page = convert_from_path(fpath, first_page=s, last_page=s)
+    converted_page = convert_from_path(fpath, dpi=100, first_page=s, last_page=s, grayscale=True)
 
     for page in converted_page:
         single_page = page
@@ -144,7 +144,7 @@ def c_transcript_ocr_single_page(fpath, s: int):
     single_page.save(fname, 'JPEG')
 
     arr = cv2.imread(fname)
-    _, arr = cv2.threshold(arr, 130, 255, cv2.THRESH_BINARY)
+    # _, arr = cv2.threshold(arr, 130, 255, cv2.THRESH_BINARY)
     arr = arr[100:-100, 100:-100, :] # TODO: 100 OK?
 
     transcript = pytesseract.image_to_string(arr) # TODO: OEM? PSM 5?
