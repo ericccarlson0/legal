@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from util.logging import log_execution_time
 from prompts import bp as prompts_bp
 from sf.docrio import check_pdf_download, get_signed_url, upload_base64
 from upstream_tasks import c_transcript, c_summarize
@@ -36,7 +35,6 @@ def summarize():
     
     return _summarize(file_id, topic)
 
-@log_execution_time
 def _summarize(file_id, topic):
     summary = check_summary(file_id, topic)
     if not summary:
@@ -55,7 +53,6 @@ def transcribe():
 
     return _transcribe(file_id)
 
-@log_execution_time
 def _transcribe(file_id):
     try:
         check_pdf_download(file_id)

@@ -8,6 +8,7 @@ from pathlib import Path
 from pdf2image import pdfinfo_from_path
 from plaintiff.plaintiffs import *
 from util.directories import *
+from util.logging import log_execution_time
 from util.summaries import get_file_summary, get_text_summary
 from util.transcripts import *
 
@@ -50,6 +51,7 @@ MEDIUM_TIME = 4
 LONG_TIME = 16
 
 @app.task(queue='q1')
+@log_execution_time
 def c_transcript(file_id: int):
     if not check_transcript_p1_file(file_id):
         res = c_transcript_p1(file_id)
@@ -174,6 +176,7 @@ def c_transcript_ocr(fname: str):
     return ret
 
 @app.task(queue='q1')
+@log_execution_time
 def c_summarize(file_id: str, topic: str):
     if topic not in prompts_map:
         raise Exception(f"{topic} not in " + ",".join([k for k in prompts_map.keys()]))
