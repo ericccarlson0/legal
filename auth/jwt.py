@@ -1,8 +1,24 @@
 import os
 import requests
 import time
-import jwt # PyJWT
+import jwt as py_jwt
 from cryptography.hazmat.primitives import serialization
+
+# TODO: save JWT in different location for dev/prod
+
+if os.environ.get('DEV_ENV'):
+    AUTH_DIR = os.getenv('DEV_AUTH_DIR')
+    ISS = os.getenv('DEV_ISS')
+    SUB = os.getenv('DEV_SUB')
+    AUD = os.getenv('DEV_AUD')
+    BASE_URL = os.getenv('DEV_SF_BASE_URL')
+
+else:
+    AUTH_DIR = os.getenv('PROD_AUTH_DIR')
+    ISS = os.getenv('PROD_ISS')
+    SUB = os.getenv('PROD_SUB')
+    AUD = os.getenv('PROD_AUD')
+    BASE_URL = os.getenv('PROD_SF_BASE_URL')
 
 def get_token():
     # print('get_token')
@@ -26,7 +42,6 @@ def jwt_to_token(curr_jwt: str) -> str:
         'assertion': curr_jwt,
     }
 
-    BASE_URL = os.getenv('SALESFORCE_BASE_URL')
     response = requests.post(BASE_URL + '/services/oauth2/token',
                             headers=headers,
                             data=data)
@@ -38,7 +53,6 @@ def jwt_to_token(curr_jwt: str) -> str:
 def get_jwt() -> str:
     # print('get_jwt')
 
-    AUTH_DIR = os.getenv('SERVICE_AUTH_DIR')
     if not os.path.isfile(AUTH_DIR + 'jwt.txt'):
         return get_new_jwt()
         
@@ -50,12 +64,6 @@ def get_jwt() -> str:
 
 def get_new_jwt() -> str:
     # print('get_new_jwt')
-
-    ISS = os.getenv('SERVICE_ISS')
-    SUB = os.getenv('SERVICE_SUB')
-    AUD = os.getenv('SERVICE_AUD')
-    AUTH_DIR = os.getenv('SERVICE_AUTH_DIR')
-
     # header = { 'alg': 'RS256' }
 
     payload = {
@@ -68,7 +76,7 @@ def get_new_jwt() -> str:
     private_key = open(AUTH_DIR + 'server.key', 'r').read()
     key = serialization.load_pem_private_key(private_key.encode(), password=None)
 
-    token = jwt.encode(
+    token = py_jwt.encode(
         payload=payload,
         key=key,
         algorithm='RS256'

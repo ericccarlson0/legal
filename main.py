@@ -58,7 +58,10 @@ def _transcribe(file_id):
         check_pdf_download(file_id)
     except Exception as e:
         message = f"File Download did not work. (Is the FileInfo ID incorrect?)\n{e}"
-        return jsonify({ "error": message })
+        return jsonify({ 
+            "finished": False,
+            "error": message,
+        })
 
     finished = check_transcript(file_id)
 

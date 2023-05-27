@@ -6,9 +6,10 @@ import requests
 from auth.jwt import get_token
 from util.directories import FILE_INFO_DIR
 
-GATEWAY = "https://api.339287139604.genesisapi.com/v1/"
 if os.environ.get('DEV_ENV'):
     GATEWAY = "https://api.214375601255.genesisapi.com/v1/"
+else:
+    GATEWAY = "https://api.339287139604.genesisapi.com/v1/"
 
 def check_pdf_download(file_id: int):
     fpath = os.path.join(FILE_INFO_DIR, f'{file_id}.pdf')
