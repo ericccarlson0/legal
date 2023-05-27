@@ -10,9 +10,10 @@ import time
 MAX_FILENAME_LEN = 256
 
 class TaskInProgressException(Exception):
-    def __init__(self, message):
-        self.message = message
-        super().__init__(self.message)
+    pass
+
+class TaskFinishedException(Exception):
+    pass
 
 def check_in_progress(fpath: str):
     if not os.path.isfile(fpath):
@@ -20,7 +21,10 @@ def check_in_progress(fpath: str):
     
     with open(fpath, 'r') as f:
         ob = json.loads(f.read())
-        if 'end_time' not in ob:
+        if 'end_time' in ob:
+            t = ob['end_time'] - ob['start_time']
+            raise TaskFinishedException(f'{fpath} finished in {t} seconds.')
+        else:
             start_time = ob['start_time']
             prog_time = time.time() - start_time
 
