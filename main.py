@@ -48,7 +48,6 @@ def _summarize(file_id, topic):
         "summary": summary,
     }
 
-@log_execution_time
 @app.route("/internal/transcribe", methods=['POST'])
 def transcribe():
     form_data = request.form
@@ -56,6 +55,7 @@ def transcribe():
 
     return _transcribe(file_id)
 
+@log_execution_time
 def _transcribe(file_id):
     try:
         check_pdf_download(file_id)
