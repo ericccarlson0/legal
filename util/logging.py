@@ -1,4 +1,4 @@
-from directories import TASK_LOG_DIR
+from util.directories import TASK_LOG_DIR
 from pathlib import Path
 
 import functools
