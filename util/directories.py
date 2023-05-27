@@ -21,3 +21,7 @@ if not os.path.isdir(SUMMARY_INT_DIR):
 SUMMARY_FINAL_DIR = os.path.join(LEGAL_BASE_DIR, 'summaries-final')
 if not os.path.isdir(SUMMARY_FINAL_DIR):
     os.mkdir(SUMMARY_FINAL_DIR)
+
+TASK_LOG_DIR = os.path.join(LEGAL_BASE_DIR, 'logs', 'tasks')
+if not os.path.isdir(TASK_LOG_DIR):
+    os.mkdir(TASK_LOG_DIR)

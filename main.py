@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from util.logging import log_execution_time
 from prompts import bp as prompts_bp
 from sf.docrio import check_pdf_download, get_signed_url, upload_base64
-from tasks import c_transcript, c_summarize
+from upstream_tasks import c_transcript, c_summarize
 from util.transcripts import check_transcript
 from util.summaries import check_summary
 
@@ -33,6 +34,10 @@ def summarize():
     file_id = form_data["id"]
     topic = form_data["topic"]
     
+    return _summarize(file_id, topic)
+
+@log_execution_time
+def _summarize(file_id, topic):
     summary = check_summary(file_id, topic)
     if not summary:
         c_summarize.delay(file_id, topic)
@@ -43,11 +48,15 @@ def summarize():
         "summary": summary,
     }
 
+@log_execution_time
 @app.route("/internal/transcribe", methods=['POST'])
 def transcribe():
     form_data = request.form
     file_id = form_data["id"]
 
+    return _transcribe(file_id)
+
+def _transcribe(file_id):
     try:
         check_pdf_download(file_id)
     except Exception as e:
@@ -60,7 +69,7 @@ def transcribe():
         print('No transcript.')
         c_transcript.delay(file_id)
         return jsonify({ "finished": False })
-
+    
     return jsonify({ "finished": True })
 
 @app.route("/internal/docrio/signed_url", methods=['GET'])

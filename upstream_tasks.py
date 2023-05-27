@@ -1,12 +1,11 @@
-import cv2
 import os
-import pytesseract
 import re
 import time
 
-from celery import Celery, group
+from celery import Celery
+from downstream_tasks import c_transcript_ocr_in_range
 from pathlib import Path
-from pdf2image import pdfinfo_from_path, convert_from_path
+from pdf2image import pdfinfo_from_path
 from plaintiff.plaintiffs import *
 from util.directories import *
 from util.summaries import get_file_summary, get_text_summary
@@ -28,8 +27,8 @@ prompts_map = {
     # [PLA_PROB_FF_PROMPT, PLA_PROB_FF_SUMMARY]
 }
 
-celery_app = Celery(
-    'tasks', # app.import_name,
+app = Celery(
+    'upstream_tasks', # app.import_name,
     backend='redis://localhost:6379', # backend=app.config['CELERY_RESULT_BACKEND'],
     # backend='rpc://',
     broker='redis://localhost:6379', # app.config['CELERY_BROKER_URL'],
@@ -50,31 +49,33 @@ SMALL_TIME = 1
 MEDIUM_TIME = 4
 LONG_TIME = 16
 
-@celery_app.task
+@app.task(queue='q1')
 def c_transcript(file_id: int):
     if not check_transcript_p1_file(file_id):
-        res = c_transcript_p1.delay(file_id)
+        res = c_transcript_p1(file_id)
 
-        await_count = 0
-        while not res.ready():
-            if res.status == 'FAILURE':
-                break
-            time.sleep(MEDIUM_TIME)
-            await_count += 1
-            print(f'await (c_transcript wait on p1) {await_count}', flush=True)
-        print(f'result {res.result}', flush=True)
+        # await_count = 0
+        # while not res.ready():
+        #     if res.status == 'FAILURE':
+        #         break
+        #     time.sleep(MEDIUM_TIME)
+        #     await_count += 1
+        #     print(f'await (c_transcript wait on p1) {await_count}', flush=True)
+
+        print(f'result {res}', flush=True)
 
     if not check_transcript_p2_file(file_id):
-        res = c_transcript_p2.delay(file_id)
+        res = c_transcript_p2(file_id)
 
-        await_count = 0
-        while not res.ready():
-            if res.status == 'FAILURE':
-                break
-            time.sleep(MEDIUM_TIME)
-            await_count += 1
-            print(f'await (c_transcript wait on p2) {await_count}', flush=True)
-        print(f'result {res.result}', flush=True) 
+        # await_count = 0
+        # while not res.ready():
+        #     if res.status == 'FAILURE':
+        #         break
+        #     time.sleep(MEDIUM_TIME)
+        #     await_count += 1
+        #     print(f'await (c_transcript wait on p2) {await_count}', flush=True)
+
+        print(f'result {res}', flush=True) 
 
     # except Exception as e:
     #     message =  f"File Transcript did not work (stage 1).\n{e}"
@@ -83,7 +84,7 @@ def c_transcript(file_id: int):
     #     message =  f"File Transcript did not work (stage 2).\n{e}"
     #     return jsonify({ "error": message })
 
-@celery_app.task
+@app.task(queue='q1')
 def c_transcript_p1(file_id: int):
     pdf_fpath = os.path.join(FILE_INFO_DIR, f'{file_id}.pdf')
     print(f'pdf fpath {pdf_fpath}', flush=True)
@@ -92,16 +93,15 @@ def c_transcript_p1(file_id: int):
         # FIXME
         transcript = transcript_quarters(pdf_fpath)
     else:
-        ocr_res = c_transcript_ocr.delay(pdf_fpath)
+        transcript = c_transcript_ocr(pdf_fpath)
 
-        await_count = 0
-        while not ocr_res.ready():
-            if ocr_res.status == 'FAILURE':
-                break
-            time.sleep(MEDIUM_TIME)
-            await_count += 1
-            print(f'await (c_transcript_p1) {await_count}', flush=True)
-        transcript = ocr_res.result
+        # await_count = 0
+        # while not ocr_res.ready():
+        #     if ocr_res.status == 'FAILURE':
+        #         break
+        #     time.sleep(MEDIUM_TIME)
+        #     await_count += 1
+        #     print(f'await (c_transcript_p1) {await_count}', flush=True)
 
     txt_full_fpath = os.path.join(TRANSCRIPT_FULL_DIR, f'{file_id}.txt')
     print(f'text full fpath {txt_full_fpath}')
@@ -113,7 +113,7 @@ def c_transcript_p1(file_id: int):
 
     return True
 
-@celery_app.task
+@app.task(queue='q1')
 def c_transcript_p2(file_id: int):
     with open(os.path.join(TRANSCRIPT_FULL_DIR, f'{file_id}.txt'), 'r') as f:
         transcript = f.read()
@@ -131,61 +131,10 @@ def c_transcript_p2(file_id: int):
 
     return True
 
-@celery_app.task
-def c_transcript_ocr_single_page(fpath, s: int):
-    converted_page = convert_from_path(fpath, dpi=100, first_page=s, last_page=s, grayscale=True)
-
-    for page in converted_page:
-        single_page = page
-        break
-
-    fname = os.path.join(TEMP_DIR, f'{s}.jpeg')
-    print('created', fname, flush=True)
-    single_page.save(fname, 'JPEG')
-
-    arr = cv2.imread(fname)
-    # _, arr = cv2.threshold(arr, 130, 255, cv2.THRESH_BINARY)
-    arr = arr[100:-100, 100:-100, :] # TODO: 100 OK?
-
-    transcript = pytesseract.image_to_string(arr) # TODO: OEM? PSM 5?
-    transcript = re.sub('\s+', ' ', transcript)
-
-    os.remove(fname)
-    print('removed', fname, flush=True)
-
-    return transcript
-
-@celery_app.task
-def c_transcript_ocr_in_range(fpath, s: int, e: int):
-    converted_pages = convert_from_path(fpath, first_page=s, last_page=e)
-
-    transcript_list = []
-
-    for i, page in enumerate(converted_pages):
-        fname = os.path.join(TEMP_DIR, f'{s+i}.jpeg')
-        # print('created', fname, flush=True)
-        page.save(fname, 'JPEG')
-    
-        arr = cv2.imread(fname)
-        _, arr = cv2.threshold(arr, 130, 255, cv2.THRESH_BINARY)
-        arr = arr[100:-100, 100:-100, :] # TODO: 100 OK?
-
-        transcript = pytesseract.image_to_string(arr) # TODO: OEM? PSM 5?
-        transcript = re.sub('\s+', ' ', transcript)
-        transcript_list.append(transcript)
-
-        os.remove(fname)
-        # print('removed', fname, flush=True)
-    
-    ret = ' '.join(transcript_list)
-    ret = re.sub('\s+', ' ', ret)
-
-    return ret
-
-PAGE_GROUP_N = 4
+PAGE_GROUP_N = 8
 # group(celery_page_transcript.delay(p, i) for i, p in enumerate(pages))()
 
-@celery_app.task
+@app.task(queue='q1')
 def c_transcript_ocr(fname: str):
     pdfinfo = pdfinfo_from_path(fname)
 
@@ -224,7 +173,7 @@ def c_transcript_ocr(fname: str):
 
     return ret
 
-@celery_app.task
+@app.task(queue='q1')
 def c_summarize(file_id: str, topic: str):
     if topic not in prompts_map:
         raise Exception(f"{topic} not in " + ",".join([k for k in prompts_map.keys()]))
@@ -252,4 +201,4 @@ def c_summarize(file_id: str, topic: str):
     return True
 
 if __name__ == '__main__':
-    celery_app.start()
+    app.start()
