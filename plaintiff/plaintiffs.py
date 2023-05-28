@@ -1,14 +1,14 @@
 ## PREFIXES
 
 PLA_FF_SUMMARY_PREFIX = """
-In the previous step, you summarized a sequence of sections of a deposition (of a plaintiff in a personal injury case).
-Each summarized section is preceded by 'Part 1', 'Part 2', and so on.
+In the previous step, you summarized sections of a deposition (of a plaintiff in a personal injury case).
+Each summarized section is separated by the symbol (*).
 """
+# Each summarized section is preceded by 'Part 1', 'Part 2', and so on.
 
-PLA_BP_SUMMARY_PREFIX = """
-In the previous step, you summarized a sequence of sections of a deposition (of a plaintiff in a personal injury case).
-Each summarized section consists of a set of important bullet-points.
-In addition, each summarized section is preceded by 'Part 1', 'Part 2', and so on.
+PLA_BP_SUMMARY_SUFFIX = """
+In the previous step, you summarized the sections of the deposition and produced a large set of bullet points.
+Condense the bullet points into a set of bullet points which do not repeat any information.
 """
 
 ## LIABILITY
@@ -32,10 +32,9 @@ Your role is to extract any mention of liability in the deposition;
 use the following summarized sections to produce a final summary.
 """
 
-PLA_LIA_BP_SUMMARY = PLA_BP_SUMMARY_PREFIX + """
-Your role is to extract any mention of liability in the deposition;
-use the following summarized sections to produce a final list of bullet-points.
-"""
+PLA_LIA_BP_SUMMARY = """
+Your role is to extract any mention of liability in the deposition of a plaintiff in a personal injury case.
+""" + PLA_BP_SUMMARY_SUFFIX
 
 ## DAMAGES
 
@@ -56,10 +55,9 @@ Your role is to extract any mention of damages in the deposition;
 use the following summarized sections to produce a final summary.
 """
 
-PLA_DAM_BP_SUMMARY = PLA_BP_SUMMARY_PREFIX + """
-Your role is to extract any mention of damages in the deposition;
-use the following summarized sections to produce a final list of bullet-points.
-"""
+PLA_DAM_BP_SUMMARY = """
+Your role is to extract any mention of damages in the deposition of a plaintiff in a personal injury case.
+""" + PLA_BP_SUMMARY_SUFFIX
 
 ## CREDIBILITY
 
@@ -81,10 +79,9 @@ Produce a bullet point for each relevant piece of information.
 Note, in particular, whether any questions are avoided or not answered directly.
 """
 
-PLA_CRED_BP_SUMMARY = PLA_BP_SUMMARY_PREFIX + """
-Your role is to extract information related to the credibility of the plaintiff in the deposition (for instance, whether questions are avoided or not answered directly);
-use the following summarized sections to produce a final list of bullet-points.
-"""
+PLA_CRED_BP_SUMMARY = """
+Your role is to extract information related to the credibility of the plaintiff in the deposition (for instance, whether questions are avoided or are not answered directly).
+""" + PLA_BP_SUMMARY_SUFFIX
 
 ## PROBLEMS
 
@@ -106,8 +103,7 @@ In particular, note whether the plaintiff had pre-existing conditions, previous 
 """
 
 PLA_PROB_BP_SUMMARY = """
-Your role is to extract the "major problems" (pre-existing conditions, previous or subsequent collisions, alcohol or drug use, and delay or gaps in treatment) in the answers of the plaintiff;
-use the following summarized sections to produce a final list of bullet-points.
-"""
+Your role is to extract the "major problems" (pre-existing conditions, previous or subsequent collisions, alcohol or drug use, and delay or gaps in treatment) in the answers of the plaintiff.
+""" + PLA_BP_SUMMARY_SUFFIX
 
 DEPO_DIR = "/Users/ericcarlson/Desktop/Reyes Browne/Depos/Plaintiff"
