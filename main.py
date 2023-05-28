@@ -32,24 +32,28 @@ def summarize():
 
     file_id = form_data["id"]
     topic = form_data["topic"]
+    print(f'/internal/summarize {file_id} {topic}', flush=True)
     
     return _summarize(file_id, topic)
 
 def _summarize(file_id, topic):
-    summary = check_summary(file_id, topic)
-    if not summary:
+    res = check_summary(file_id, topic)
+    print('_summarize', res)
+
+    if not res:
         c_summarize.delay(file_id, topic)
         return { "finished": False }
 
     return { 
         "finished": True,
-        "summary": summary,
+        "summary": res,
     }
 
 @app.route("/internal/transcribe", methods=['POST'])
 def transcribe():
     form_data = request.form
     file_id = form_data["id"]
+    print(f'/internal/transcribe {file_id}', flush=True)
 
     return _transcribe(file_id)
 
@@ -64,9 +68,9 @@ def _transcribe(file_id):
         })
 
     finished = check_transcript(file_id)
+    print('_transcribe', finished)
 
     if not finished:
-        print('No transcript.')
         c_transcript.delay(file_id)
         return jsonify({ "finished": False })
     

@@ -33,6 +33,10 @@ def get_signed_url(file_id: int) -> str:
     }
     response = requests.get(GATEWAY + 'files?Id=' + file_id,
                             headers=headers)
+    
+    if 'Records' not in response.json():
+        print(response.json(), flush=True)
+
     return response.json()['Records'][0]['SignedUrl']
 
 def init_file_apigateway(fname: str, content_type: str, token: str):
