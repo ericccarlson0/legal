@@ -38,7 +38,7 @@ def summarize():
 
 def _summarize(file_id, topic):
     res = check_summary(file_id, topic)
-    print('_summarize', res)
+    print('_summarize', bool(res))
 
     if not res:
         c_summarize.delay(file_id, topic)
