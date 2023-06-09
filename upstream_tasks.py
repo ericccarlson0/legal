@@ -183,12 +183,12 @@ def c_summarize(file_id: str, topic: str):
     
     try:
         p1, p2 = prompts_map[topic]
+
         summary_intermediate = get_file_summary(file_id, prompt=p1)
         print(f'summary, stage 1, {len(summary_intermediate)}')
         summary_intermediate_fpath = os.path.join(SUMMARY_INT_DIR, f'{file_id}-{topic}.txt')
         with open(summary_intermediate_fpath, 'w') as f:
             f.write(summary_intermediate)
-
 
         summary = get_text_summary(summary_intermediate, p2, do_seg=False)
         print(f'summary, stage 2, {len(summary)}')

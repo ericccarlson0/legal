@@ -21,7 +21,8 @@ def get_text_summary(input: str, prompt: str, do_seg: bool = True) -> str:
             print(f'segment {i}', flush=True)
             content = get_completion(s, prompt)
             print(f'done, segment {i}', flush=True)
-            ret += f'Part {i+1}.\n{content}\n'
+            # TODO: (*)
+            ret += f'\n{content}'
         
         return ret
     
