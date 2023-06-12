@@ -1,9 +1,11 @@
 import os
+import time
 
 from plaintiff.plaintiffs import DEPO_DIR
 from pypdf import PdfReader
 from util.str_util import cut_after_suffix, cut_before_prefix
-from util.transcripts import depo_transcript, transcript_quarters
+from util.transcripts import transcript_single, transcript_quarters
+from upstream_tasks import c_transcript
 
 args = [
     ["America Cuaresma Full.pdf", 75, 75, 75, 75, True],
@@ -14,7 +16,7 @@ args = [
     # ["Kaland Fernanders Full.pdf", 50, 50, 50, 50, False], # FIXME (no text through PyPDF)
     ["Kevin Scott Harris Full.pdf", 50, 50, 50, 50, False],
     ["Michael Diles Full.pdf", 75, 75, 75, 75, True],
-    # ["Patrick Parker Full.pdf", 50, 50, 50, 50, False], # FIXME (bad quality?)
+    # ["Patrick Parker Full.pdf", 50, 50, 50, 50, False], # FIXME (bad quality? OBSTRUCTED)
     # ["Scott Lund Full.pdf", 0, 0, 0, 0, False], # FIXME (bad quality?)
     # ["Sofia Tames Full.pdf", 0, 0, 0, 0, False], # FIXME (bad quality?)
     # ["Tiwan Spencer Full.pdf", 0, 0, 0, 0, False], # FIXME (no text through PyPDF)
@@ -36,14 +38,31 @@ fnames = [
     "Tiwan Spencer Full.pdf",
 ]
 
-for pdf_fpath in fnames:
-    reader = PdfReader(os.path.join(DEPO_DIR, pdf_fpath))
-    count = 0
-    for i, p in enumerate(reader.pages):
-        extracted = p.extract_text() # extract_text(0)
-        count += len(extracted)
+ids = [
+    'a2O6e000003dBlrEAE',
+    'a2O6e000003dBn4EAE',
+    'a2O6e000003dsGIEAY',
+    'a2O6e000003g4t0EAA',
+    'a2O6e000003eFHdEAM',
+    'a2O6e000003dRRGEA2',
+    'a2O6e000003eH4WEAU',
+    'a2O6e000003eiD1EAI',
+    'a2O6e000003dpjaEAA',
+    'a2O6e000003fj0MEAQ',
+    'a2O6e000003eH5KEAU'
+]
+
+prev_t = time.time()
+for i, id in enumerate(ids):
+    print('...')
     
-    print(count, pdf_fpath)
+    res = c_transcript(id)
+
+    t = time.time()
+    dt = t - prev_time
+    prev_time = t
+
+    print(i, dt)
 
 # for i, (fname, t, b, r, l, quarters) in enumerate(args):
 #     print(f'({i}) {fname}')
