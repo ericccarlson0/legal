@@ -1,8 +1,8 @@
-
 import cv2
 import os
 import pytesseract
 import re
+import uuid
 
 from celery import Celery
 from pdf2image import convert_from_path
@@ -27,7 +27,9 @@ def c_transcript_ocr_single_page(fpath, s: int):
         single_page = page
         break
 
-    fname = os.path.join(TEMP_DIR, f'{s}.jpeg')
+    rand_id = str(uuid.uuid4())
+
+    fname = os.path.join(TEMP_DIR, f'{rand_id}.jpeg')
     print('created', fname, flush=True)
     single_page.save(fname, 'JPEG')
 
@@ -49,8 +51,10 @@ def c_transcript_ocr_in_range(fpath, s: int, e: int):
 
     transcript_list = []
 
+    rand_id = str(uuid.uuid4())
+
     for i, page in enumerate(converted_pages):
-        fname = os.path.join(TEMP_DIR, f'{s+i}.jpeg')
+        fname = os.path.join(TEMP_DIR, f'{rand_id}-{i}.jpeg')
         # print('created', fname, flush=True)
         page.save(fname, 'JPEG')
     
