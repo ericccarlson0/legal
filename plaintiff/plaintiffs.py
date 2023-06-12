@@ -7,8 +7,8 @@ Each summarized section is separated by the symbol (*).
 # Each summarized section is preceded by 'Part 1', 'Part 2', and so on.
 
 PLA_BP_SUMMARY_SUFFIX = """
-In the previous step, you summarized the sections of the deposition and produced a large set of bullet points.
-Condense the bullet points into a set of bullet points which do not repeat any information.
+In the previous step, you summarized the sections of a deposition and produced a large set of bullet points.
+Condense the following bullet points into a the smallest possible set which does not pass over any important points.
 """
 
 ## LIABILITY
@@ -22,9 +22,9 @@ Produce a summary of each mention of liability by the plaintiff.
 
 # PLAINTIFF LIABILITY BULLET-POINT PROMPT
 PLA_LIA_BP_PROMPT = """
-Your role is to extract any mention of liability in the following deposition (of a plaintiff in a personal injury case).
+Your role is to extract the most important mentions of liability in the following deposition (of a plaintiff in a personal injury case).
 The fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-Produce a bullet-point for each relevant mention of liability.
+Produce a bullet-point for each relevant mention of liability (no more than three).
 """
 
 PLA_LIA_FF_SUMMARY = PLA_FF_SUMMARY_PREFIX + """
@@ -45,9 +45,9 @@ Produce a summary of each mention of damages by the plaintiff.
 """
 
 PLA_DAM_BP_PROMPT = """
-Your role is to extract any mention of damages in the following deposition (of a plaintiff in a personal injury case).
+Your role is to extract the most important mentions of damages in the following deposition (of a plaintiff in a personal injury case).
 The fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-Produce a bullet-point for each relevant mention of damages.
+Produce a bullet-point for each relevant mention of damages (no more than three).
 """
 
 PLA_DAM_FF_SUMMARY = PLA_FF_SUMMARY_PREFIX + """
@@ -73,9 +73,9 @@ use the following summarized sections to produce a final summary.
 """
 
 PLA_CRED_BP_PROMPT = """
-Your role is to extract information related to the credibility of the plaintiff in a personal injury case.
+Your role is to extract the most important information related to the credibility of the plaintiff in a personal injury case.
 The following deposition fragment consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-Produce a bullet point for each relevant piece of information.
+Produce a bullet point for each relevant piece of information (no more than three).
 Note, in particular, whether any questions are avoided or not answered directly.
 """
 
@@ -98,7 +98,7 @@ use the following summarized sections to produce a final summary.
 
 PLA_PROB_BP_PROMPT = """
 The following is a fragment of a deposition which consists of a series of questions (preceded by "Q.") and answers (preceded by "A.").
-Produce a bullet-point for each "major problem" in the answers of the plaintiff.
+Produce a bullet-point for each "major problem" in the answers of the plaintiff (no more than three).
 In particular, note whether the plaintiff had pre-existing conditions, previous or subsequent collisions, alcohol or drug use (time of the collision), delay in treatment, or gaps in treatment.
 """
 
