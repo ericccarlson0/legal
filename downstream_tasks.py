@@ -9,7 +9,7 @@ from pdf2image import convert_from_path
 from util.directories import *
 
 # A temporary path for intermediate files.
-TEMP_DIR = os.path.join(os.getcwd(), "temp")
+TEMP_DIR = os.path.join(os.getcwd(), f'temp-{__name__}')
 if not os.path.isdir(TEMP_DIR):
     os.mkdir(TEMP_DIR)
 
@@ -21,7 +21,7 @@ app = Celery(
 
 @app.task(queue='q2')
 def c_transcript_ocr_single_page(fpath, s: int):
-    converted_page = convert_from_path(fpath, dpi=100, first_page=s, last_page=s, grayscale=True)
+    converted_page = convert_from_path(fpath, first_page=s, last_page=s, grayscale=True)
 
     for page in converted_page:
         single_page = page
@@ -47,7 +47,7 @@ def c_transcript_ocr_single_page(fpath, s: int):
 
 @app.task(queue='q2')
 def c_transcript_ocr_in_range(fpath, s: int, e: int):
-    converted_pages = convert_from_path(fpath, dpi=100, first_page=s, last_page=e, grayscale=True)
+    converted_pages = convert_from_path(fpath, first_page=s, last_page=e, grayscale=True)
 
     transcript_list = []
 

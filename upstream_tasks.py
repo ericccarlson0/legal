@@ -8,14 +8,9 @@ from pathlib import Path
 from pdf2image import pdfinfo_from_path
 from plaintiff.plaintiffs import *
 from util.directories import *
-from util.logging import log_execution_time
+from util.x_logging import log_execution_time
 from util.summaries import get_file_summary, get_text_summary
 from util.transcripts import *
-
-# A temporary path for intermediate files.
-TEMP_DIR = os.path.join(os.getcwd(), "temp")
-if not os.path.isdir(TEMP_DIR):
-    os.mkdir(TEMP_DIR)
 
 prompts_map = {
     "LIABILITY": [PLA_LIA_BP_PROMPT, PLA_LIA_BP_SUMMARY],
