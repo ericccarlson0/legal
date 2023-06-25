@@ -1,9 +1,11 @@
 import io
 import os
 import time
+import uuid
 
+import base64
 import boto3
-from pdf2image import convert_from_path
+from pdf2image import convert_from_path, pdfinfo_from_path
 from PIL import Image, ImageDraw
 
 REGION = 'us-west-2'
@@ -12,13 +14,17 @@ PLA_BUCKET = 'deposition-pdf-plaintiff'
 MINISCULE_TIME = 0.5
 SMALL_TIME = 2
 
-def show_bbox(draw, bbox, w, h, color):
+TEMP_DIR = os.path.join(os.getcwd(), f'temp-{__name__}')
+if not os.path.isdir(TEMP_DIR):
+    os.mkdir(TEMP_DIR)
+
+def show_bbox(draw, bbox, w: int, h: int, color: str):
     left = w * bbox['Left']
     top = h * bbox['Top']
 
     draw.rectangle([left, top, left + (w * bbox['Width']), top + (h * bbox['Height'])], outline=color)
 
-def show_selected(draw, bbox, w, h, color):
+def show_selected(draw, bbox, w: int, h: int, color: str):
     left = w * bbox['Left']
     top = h * bbox['Top']
 
@@ -27,7 +33,7 @@ def show_selected(draw, bbox, w, h, color):
 # s3.create_bucket(Bucket=BUCKET,
 #                  CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
 
-def textract_pages(bucket, fname):
+def textract_pages(bucket: str, fname: str):
     textract = boto3.client('textract', region_name=REGION)
 
     # TODO: start_document_analysis OR start_document_text_detection?
@@ -65,7 +71,33 @@ def textract_pages(bucket, fname):
 # im_binary = bytes_stream.getvalue()
 # im = Image.open(io.BytesIO(bytes_stream))
 
-def show_im_w_blocks(fpath, pages, page_n: int):
+def textract_pdf_to_image(fpath: str):
+    textract = boto3.client('textract', region_name=REGION)
+
+    pdfinfo = pdfinfo_from_path(fpath)
+    n_pages = pdfinfo['Pages']
+
+    rand_id = str(uuid.uuid4())
+
+    pages = []
+    for i in range(1, n_pages+1):
+        print(i)
+        
+        im = convert_from_path(fpath, dpi=200, first_page=i, last_page=i, grayscale=True)[0]
+
+        save_to_fpath = os.path.join(TEMP_DIR, f'{rand_id}-{i}.png')
+        im.save(save_to_fpath)
+        with open(save_to_fpath, 'rb') as f:
+            im_bytes = bytearray(f.read())
+        os.remove(save_to_fpath)
+
+        # im_encoded = base64.b64encode(im_bytes)
+        resp = textract.detect_document_text(Document={'Bytes': im_bytes})
+        pages.append(resp)
+
+    return pages
+
+def show_im_w_blocks(fpath: str, pages, page_n: int):
     im = convert_from_path(fpath, dpi=200, first_page=page_n+1, last_page=page_n+1, grayscale=True)[0]
     w, h = im.size
     draw = ImageDraw.Draw(im)
@@ -90,7 +122,7 @@ def show_im_w_blocks(fpath, pages, page_n: int):
     
     im.show()
 
-def show_im_w_lines(fpath, pages, page_n: int, max_block: int):
+def show_im_w_lines(fpath: str, pages, page_n: int, max_block: int):
     im = convert_from_path(fpath, dpi=200, first_page=page_n+1, last_page=page_n+1, grayscale=True)[0]
     w, h = im.size
     draw = ImageDraw.Draw(im)
