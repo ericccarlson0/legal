@@ -29,3 +29,7 @@ if not os.path.isdir(LOG_DIR):
 TASK_LOG_DIR = os.path.join(LOG_DIR, 'tasks')
 if not os.path.isdir(TASK_LOG_DIR):
     os.mkdir(TASK_LOG_DIR)
+
+IMG_DIR = os.getenv('DEPO_IMG_DIR')
+PLA_IMG_DIR = os.path.join(IMG_DIR, 'Plaintiff')
+DEF_IMG_DIR = os.path.join(IMG_DIR, 'Defendant')
