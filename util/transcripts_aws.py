@@ -1,12 +1,14 @@
-import io
+import boto3
 import os
 import time
 import uuid
 
-import base64
-import boto3
+from util.x_logging import pickled
 from pdf2image import convert_from_path, pdfinfo_from_path
-from PIL import Image, ImageDraw
+from PIL import ImageDraw
+
+# QUARTERS
+# America Cuaresma, Edwin Munoz Martinez, Felipe Mares, Jesse Burns, Michael Diles
 
 REGION = 'us-west-2'
 PLA_BUCKET = 'deposition-pdf-plaintiff'
@@ -33,10 +35,10 @@ def show_selected(draw, bbox, w: int, h: int, color: str):
 # s3.create_bucket(Bucket=BUCKET,
 #                  CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
 
+@pickled
 def textract_pages(bucket: str, fname: str):
     textract = boto3.client('textract', region_name=REGION)
 
-    # TODO: start_document_analysis OR start_document_text_detection?
     resp = textract.start_document_text_detection(DocumentLocation={'S3Object': {'Bucket': bucket, 'Name': fname}})
     job_id = resp['JobId']
 
@@ -71,11 +73,13 @@ def textract_pages(bucket: str, fname: str):
 # im_binary = bytes_stream.getvalue()
 # im = Image.open(io.BytesIO(bytes_stream))
 
+@pickled
 def textract_pdf_to_image(fpath: str):
     textract = boto3.client('textract', region_name=REGION)
 
     pdfinfo = pdfinfo_from_path(fpath)
     n_pages = pdfinfo['Pages']
+    print(n_pages, 'pages')
 
     rand_id = str(uuid.uuid4())
 
@@ -83,7 +87,7 @@ def textract_pdf_to_image(fpath: str):
     for i in range(1, n_pages+1):
         print(i)
         
-        im = convert_from_path(fpath, dpi=200, first_page=i, last_page=i, grayscale=True)[0]
+        im = convert_from_path(fpath, first_page=i, last_page=i, grayscale=True)[0]
 
         save_to_fpath = os.path.join(TEMP_DIR, f'{rand_id}-{i}.png')
         im.save(save_to_fpath)
