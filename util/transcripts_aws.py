@@ -101,6 +101,52 @@ def textract_pdf_to_image(fpath: str):
 
     return pages
 
+def print_lines(blocks):
+    line_blocks = [bl for bl in blocks if bl['BlockType'] == 'LINE']
+    for bl in line_blocks:
+        h1 = bl['Geometry']['Polygon'][0]['Y']
+        h2 = bl['Geometry']['Polygon'][3]['Y']
+        print('No Text' if 'Text' not in bl else bl['Text'])
+        print(f'\t{h1:.4f} to {h2:.4f}')
+
+def print_box(block):
+    t_l, t_r, b_l, b_r = block['Geometry']['Polygon']
+    t = (t_l['Y'] + t_r['Y']) / 2
+    print(f'top:\t{t:.4f}')
+    b = (b_l['Y'] + b_r['Y']) / 2
+    print(f'bottom:\t{b:.4f}')
+    l = (t_l['X'] + b_l['X']) / 2
+    print(f'left:\t{l:.4f}')
+    r = (t_r['X'] + b_r['X']) / 2
+    print(f'right:\t{r:.4f}')
+
+# There is lot of high-powered AI, and then there is the issue of trying to find the optimal way to cut out the line
+# numbers on the side. Because we do not have multi-modal models available yet.
+# .1210 - .1280, .1389 - .1508, .1629 - .1702, .190-.200, 
+def print_numbers_x(blocks, print_all=True):
+    line_blocks = [bl for bl in blocks if bl['BlockType'] == 'LINE']
+    s = 0 # SUM
+    c = 0 # COUNT
+    for bl in line_blocks:
+        if 'Text' not in bl:
+            continue
+        line_split = bl['Text'].split(' ')
+        if len(line_split) > 1 or not line_split[0].isdigit():
+            continue
+        
+        if print_all:
+            print(f'{l:.4f}')
+        t_l, _, b_l, _ = bl['Geometry']['Polygon']
+        l = (t_l['X'] + b_l['X']) / 2
+        c += 1
+        s += l
+    
+    if c == 0:
+        print('No numbers?')
+    else:
+        avg = s / c
+        print(f'avg: {avg:.4f}')
+
 def show_im_w_blocks(fpath: str, pages, page_n: int):
     im = convert_from_path(fpath, dpi=200, first_page=page_n+1, last_page=page_n+1, grayscale=True)[0]
     w, h = im.size
