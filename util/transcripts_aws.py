@@ -1,9 +1,10 @@
 import boto3
 import os
+import re
 import time
 import uuid
 
-from util.x_logging import pickled
+from util.x_logging import log_execution
 from pdf2image import convert_from_path, pdfinfo_from_path
 from PIL import ImageDraw
 
@@ -35,7 +36,7 @@ def show_selected(draw, bbox, w: int, h: int, color: str):
 # s3.create_bucket(Bucket=BUCKET,
 #                  CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
 
-@pickled
+@log_execution
 def textract_pages(bucket: str, fname: str):
     textract = boto3.client('textract', region_name=REGION)
 
@@ -73,7 +74,50 @@ def textract_pages(bucket: str, fname: str):
 # im_binary = bytes_stream.getvalue()
 # im = Image.open(io.BytesIO(bytes_stream))
 
-@pickled
+def text_has_page_number(s: str) -> bool:
+    return re.search(r"Page \d+", s)
+
+@log_execution(True)
+def check_begin_for_quarters(fpath: str) -> bool:
+    textract = boto3.client('textract', region_name=REGION)
+
+    rand_id = str(uuid.uuid4())
+
+    pages = []
+    for i in range(1, 10):
+        print(i, '(textract)')
+
+        im = convert_from_path(fpath, first_page=i, last_page=i, grayscale=True)[0]
+
+        save_to_fpath = os.path.join(TEMP_DIR, f'{rand_id}-{i}.png')
+        im.save(save_to_fpath)
+        with open(save_to_fpath, 'rb') as f:
+            im_bytes = bytearray(f.read())
+        os.remove(save_to_fpath)
+
+        resp = textract.detect_document_text(Document={'Bytes': im_bytes})
+        pages.append(resp)
+    
+    quad_c = 0
+    for i, page in enumerate(pages):
+        print(i, '(check for "Page X")')
+
+        blocks = page['Blocks']
+        line_blocks = [bl for bl in blocks if bl['BlockType'] == 'LINE']
+
+        page_n_c = 0
+        for bl in line_blocks:
+            txt = bl['Text']
+            if text_has_page_number(txt):
+                print(txt)
+                page_n_c += 1
+        
+        if page_n_c >= 4:
+            quad_c += 1
+    
+    return quad_c >= 3
+
+@log_execution(True)
 def textract_pdf_to_image(fpath: str):
     textract = boto3.client('textract', region_name=REGION)
 
@@ -85,7 +129,7 @@ def textract_pdf_to_image(fpath: str):
 
     pages = []
     for i in range(1, n_pages+1):
-        print(i)
+        print(i, '(textract)')
         
         im = convert_from_path(fpath, first_page=i, last_page=i, grayscale=True)[0]
 

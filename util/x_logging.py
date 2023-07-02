@@ -37,18 +37,6 @@ def save_res_pickle(res, dname, *args):
     with open(os.path.join(dir, fname), 'wb') as oup:
         pickle.dump(res, oup, pickle.HIGHEST_PROTOCOL)
 
-def pickled(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        res = func(*args, **kwargs)
-
-        save_res_pickle(res, func.__name__, *args)
-        print('pickled', func.__name__)
-
-        return res
-    
-    return wrapper
-
 def check_in_progress(fpath: str):
     if not os.path.isfile(fpath):
         return
@@ -80,23 +68,29 @@ def end_progress(fpath: str):
     with open(fpath, 'w') as f:
         f.write(json.dumps(ob))
 
-def log_execution_time(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        arg_str = '-'.join(filename_str(arg) for arg in args)
-        if len(arg_str) + len(func.__name__) > MAX_FILENAME_LEN:
-            raise Exception(f'Function signature cannot be turned into a filename. {len(arg_str)} chars is too much for the arguments.')
+def log_execution(do_pickle: bool = True):
+    def outer(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            arg_str = '-'.join(filename_str(arg) for arg in args)
+            if len(arg_str) + len(func.__name__) > MAX_FILENAME_LEN:
+                raise Exception(f'Function signature cannot be turned into a filename. {len(arg_str)} chars is too much for the arguments.')
+            
+            fname = func.__name__ + '-' + arg_str
+            fpath = os.path.join(TASK_LOG_DIR, fname)
+
+            check_in_progress(fpath)
+            start_progress(fpath)
+
+            res = func(*args, **kwargs)
+            if do_pickle:
+                save_res_pickle(res, func.__name__, *args)
+                print('pickled', func.__name__)
+
+            end_progress(fpath)
+
+            return res
         
-        fname = func.__name__ + '-' + arg_str
-        fpath = os.path.join(TASK_LOG_DIR, fname)
+        return wrapper
 
-        check_in_progress(fpath)
-        start_progress(fpath)
-
-        res = func(*args, **kwargs)
-
-        end_progress(fpath)
-
-        return res
-    
-    return wrapper
+    return outer
