@@ -1,4 +1,7 @@
 import boto3
+import cv2
+import io
+import numpy as np
 import os
 import re
 import time
@@ -6,10 +9,8 @@ import uuid
 
 from util.x_logging import log_execution
 from pdf2image import convert_from_path, pdfinfo_from_path
-from PIL import ImageDraw
-
-# QUARTERS
-# America Cuaresma, Edwin Munoz Martinez, Felipe Mares, Jesse Burns, Michael Diles
+from PIL import Image, ImageDraw
+from matplotlib import pyplot as plt
 
 REGION = 'us-west-2'
 PLA_BUCKET = 'deposition-pdf-plaintiff'
@@ -32,9 +33,6 @@ def show_selected(draw, bbox, w: int, h: int, color: str):
     top = h * bbox['Top']
 
     draw.rectangle([left, top, left + (w * bbox['Width']), top + (h * bbox['Height'])], fill=color)
-
-# s3.create_bucket(Bucket=BUCKET,
-#                  CreateBucketConfiguration={'LocationConstraint': 'us-west-2'})
 
 @log_execution
 def textract_pages(bucket: str, fname: str):
@@ -67,83 +65,124 @@ def textract_pages(bucket: str, fname: str):
 
     return pages
 
-# s3_conn = boto3.resource('s3')
-# s3_ob = s3_conn.Object(bucket, document)
-# s3_resp = s3_ob.get()
-# bytes_stream = io.BytesIO(s3_resp['Body'].read())
-# im_binary = bytes_stream.getvalue()
-# im = Image.open(io.BytesIO(bytes_stream))
-
 def text_has_page_number(s: str) -> bool:
     return re.search(r"Page \d+", s)
 
+MIN_BOUNDING_BOX_PROPORTION = 0.65
+def divide_into_quarters(im_arr: np.ndarray):
+    assert im_arr.ndim == 2
+
+    edges = cv2.Canny(im_arr, 64, 127, apertureSize=3, L2gradient=True)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    max_contour = max(contours, key=cv2.contourArea)
+    h, w = im_arr.shape
+    c_x, c_y, c_w, c_h = cv2.boundingRect(max_contour)
+
+    if c_w < w * MIN_BOUNDING_BOX_PROPORTION or c_h < h * MIN_BOUNDING_BOX_PROPORTION:
+        return None
+
+    # A typical result would be (250, 140, 1250, 1850) or (250, 140, 1350, 1930)
+    #   for image size 1700, 2200 (79.3% h, 87.5% w)
+    tl_img = im_arr[c_y : c_y + (c_h // 2), c_x : c_x + (c_w // 2)]
+    bl_img = im_arr[c_y + (c_h // 2) : c_y + c_h, c_x : c_x + (c_w // 2)]
+    tr_img = im_arr[c_y : c_y + (c_h // 2), c_x + (c_w // 2) : c_x + c_w]
+    br_img = im_arr[c_y + (c_h // 2) : c_y + c_h, c_x + (c_w // 2) : c_x + c_w]
+
+    return tl_img, bl_img, tr_img, br_img
+
+# return whether four or more pages out of the first ten are divided into 'Page X', 'Page X+1', 'Page X+2', 'Page X+3'
 @log_execution(True)
-def check_begin_for_quarters(fpath: str) -> bool:
+def check_begin_for_quarters(fpath: str) -> int:
     textract = boto3.client('textract', region_name=REGION)
 
-    rand_id = str(uuid.uuid4())
-
-    pages = []
+    quad_c = 0 # count of pages with four page numbers ('Page X')
+    f_page_quad = -1 # first page with four page numbers ('Page X')
     for i in range(1, 10):
-        print(i, '(textract)')
-
         im = convert_from_path(fpath, first_page=i, last_page=i, grayscale=True)[0]
 
-        save_to_fpath = os.path.join(TEMP_DIR, f'{rand_id}-{i}.png')
-        im.save(save_to_fpath)
-        with open(save_to_fpath, 'rb') as f:
-            im_bytes = bytearray(f.read())
-        os.remove(save_to_fpath)
+        im_bytesio = io.BytesIO()
+        im.save(im_bytesio, format='PNG')
 
-        resp = textract.detect_document_text(Document={'Bytes': im_bytes})
-        pages.append(resp)
-    
-    quad_c = 0
-    for i, page in enumerate(pages):
-        print(i, '(check for "Page X")')
-
-        blocks = page['Blocks']
-        line_blocks = [bl for bl in blocks if bl['BlockType'] == 'LINE']
+        resp = textract.detect_document_text(Document={'Bytes': im_bytesio.getvalue()})
+        
+        blocks = resp['Blocks']
+        blocks = [bl for bl in blocks if bl['BlockType'] == 'LINE']
 
         page_n_c = 0
-        for bl in line_blocks:
+        for bl in blocks:
             txt = bl['Text']
             if text_has_page_number(txt):
-                print(txt)
                 page_n_c += 1
         
         if page_n_c >= 4:
             quad_c += 1
+            if f_page_quad < 0:
+                f_page_quad = i
     
-    return quad_c >= 3
+    return f_page_quad if quad_c > 4 else -1
 
+# TODO?
+def arr_to_png_bytes(im_arr: np.ndarray):
+    assert im_arr.ndim == 2
+
+    im_pil = Image.fromarray(im_arr)
+    im_bytesio = io.BytesIO()
+    im_pil.save(im_bytesio, format='PNG')
+
+    return im_bytesio.getvalue()
+
+# TODO?
+def textract_page(textract, im):
+    im_bytesio = io.BytesIO()
+    im.save(im_bytesio, format='PNG')
+    im_bytes = im_bytesio.getvalue()
+    
+    return textract.detect_document_text(Document={'Bytes': im_bytes})
+
+# TODO?
+def textract_quarters_page(textract, im):
+    im_arr = np.asarray(im)
+    pages = []
+
+    quarter_arrs = divide_into_quarters(im_arr)
+    if not quarter_arrs:
+        return None
+
+    for arr in quarter_arrs:
+        im_bytes = arr_to_png_bytes(arr)
+        resp = textract.detect_document_text(Document={'Bytes': im_bytes})
+        pages.append(resp)
+
+    return pages
+    
 @log_execution(True)
 def textract_pdf_to_image(fpath: str):
     textract = boto3.client('textract', region_name=REGION)
 
     pdfinfo = pdfinfo_from_path(fpath)
     n_pages = pdfinfo['Pages']
-    print(n_pages, 'pages')
-
-    rand_id = str(uuid.uuid4())
+    # print(n_pages, 'pages')
+    f_page_quad = check_begin_for_quarters(fpath)
+    print('f_page_quad', f_page_quad)
+    is_quarters = f_page_quad > 0
 
     pages = []
-    for i in range(1, n_pages+1):
-        print(i, '(textract)')
-        
-        im = convert_from_path(fpath, first_page=i, last_page=i, grayscale=True)[0]
+    for i in range(n_pages):
+        print(i+1, '(textract)')
+        im = convert_from_path(fpath, first_page=i+1, last_page=i+1, grayscale=True)[0]
 
-        save_to_fpath = os.path.join(TEMP_DIR, f'{rand_id}-{i}.png')
-        im.save(save_to_fpath)
-        with open(save_to_fpath, 'rb') as f:
-            im_bytes = bytearray(f.read())
-        os.remove(save_to_fpath)
-
-        # im_encoded = base64.b64encode(im_bytes)
-        resp = textract.detect_document_text(Document={'Bytes': im_bytes})
-        pages.append(resp)
+        if not is_quarters:
+            pages.append(textract_page(textract, im))
+        elif i >= f_page_quad:
+            responses = textract_quarters_page(textract, im)
+            if responses:
+                pages = pages + responses
 
     return pages
+
+# PRINT INFO
 
 def print_lines(blocks):
     line_blocks = [bl for bl in blocks if bl['BlockType'] == 'LINE']
@@ -231,3 +270,32 @@ def show_im_w_lines(fpath: str, pages, page_n: int, max_block: int):
             show_bbox(draw, bbox, w, h, 'red')
 
     im.show()
+
+def imshow_2d(im_arr: np.ndarray):
+    assert im_arr.ndim == 2
+
+    expanded_im_arr = np.repeat(im_arr[:, :, np.newaxis], 3, axis=2)
+    _, ax = plt.subplots()
+    ax.imshow(expanded_im_arr)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.show()
+
+def vis_max_contours(fpath: str, page_n: int, n_contours: int = 1):
+    im = convert_from_path(fpath, first_page=page_n, last_page=page_n, grayscale=True)[0]
+    im_arr = np.asarray(im)
+
+    edges = cv2.Canny(im_arr, 64, 127, apertureSize=3, L2gradient=True)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    sorted_contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+    expanded_im_arr = np.repeat(im_arr[:, :, np.newaxis], 3, axis=2)
+    for i in range(n_contours):
+        print('contour', i)
+        im_to_show = cv2.drawContours(expanded_im_arr, sorted_contours, i, (0,255,0), 3)
+    
+    _, ax = plt.subplots()
+    ax.imshow(im_to_show)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.show()
