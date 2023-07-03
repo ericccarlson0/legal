@@ -35,7 +35,7 @@ def show_selected(draw, bbox, w: int, h: int, color: str):
     draw.rectangle([left, top, left + (w * bbox['Width']), top + (h * bbox['Height'])], fill=color)
 
 @log_execution
-def textract_pages(bucket: str, fname: str):
+def textract_bucket(bucket: str, fname: str):
     textract = boto3.client('textract', region_name=REGION)
 
     resp = textract.start_document_text_detection(DocumentLocation={'S3Object': {'Bucket': bucket, 'Name': fname}})
