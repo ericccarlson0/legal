@@ -7,8 +7,6 @@ import json
 import os
 import pickle
 import re
-import time
-import uuid
 
 # FIXME: ARBITRARY
 MAX_FILENAME_LEN = 256

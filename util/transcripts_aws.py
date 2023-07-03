@@ -5,7 +5,6 @@ import numpy as np
 import os
 import re
 import time
-import uuid
 
 from util.x_logging import log_execution
 from pdf2image import convert_from_path, pdfinfo_from_path
@@ -67,6 +66,9 @@ def textract_bucket(bucket: str, fname: str):
 
 def text_has_page_number(s: str) -> bool:
     return re.search(r"Page \d+", s)
+
+def text_is_number(s: str) -> bool:
+    return re.search(r"\d+", s)
 
 MIN_BOUNDING_BOX_PROPORTION = 0.65
 def divide_into_quarters(im_arr: np.ndarray):
@@ -156,7 +158,7 @@ def textract_quarters_page(textract, im):
         pages.append(resp)
 
     return pages
-    
+
 @log_execution(True)
 def textract_pdf_to_image(fpath: str):
     textract = boto3.client('textract', region_name=REGION)
@@ -181,6 +183,19 @@ def textract_pdf_to_image(fpath: str):
                 pages = pages + responses
 
     return pages
+
+def transcript_from_textract(pages) -> str:
+    transcript_arr = []
+    for page in pages:
+        for block in page['Blocks']:
+            if block['BlockType'] == 'LINE':
+                s = block['Text']
+                if not text_is_number(s):
+                    transcript_arr.append(s)
+    
+    ret = ' '.join(transcript_arr)
+    ret = re.sub(r'\s+', ' ', ret)
+    return ret
 
 # PRINT INFO
 
