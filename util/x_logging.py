@@ -48,9 +48,8 @@ def check_in_progress(fpath: str):
             raise TaskFinishedException(f'{fpath} finished in {t} seconds.')
         else:
             start_time = ob['start_time']
-            prog_time = time.time() - start_time
 
-            raise TaskInProgressException(f'{fpath} has been in progress for {prog_time} seconds.')
+            raise TaskInProgressException(f'{fpath} has been in progress from {start_time}')
 
 def start_progress(fpath: str):
     ob = {
