@@ -42,8 +42,7 @@ def check_in_progress(fpath: str):
     with open(fpath, 'r') as f:
         ob = json.loads(f.read())
         if 'end_time' in ob:
-            t = ob['end_time'] - ob['start_time']
-            raise TaskFinishedException(f'{fpath} finished in {t} seconds.')
+            raise TaskFinishedException(f'{fpath} already finished')
         else:
             start_time = ob['start_time']
 

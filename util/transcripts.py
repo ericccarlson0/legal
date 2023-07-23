@@ -10,7 +10,7 @@ from util.directories import TRANSCRIPT_FULL_DIR, TRANSCRIPT_COND_DIR
 class NoPdfTextException(Exception):
     pass
     
-MAGIC_NUMBER = 2560
+MIN_DEPO_CHAR_LEN = 2560
 
 # A temporary path for intermediate files.
 TEMP_DIR = os.path.join(os.getcwd(), "temp")
@@ -45,7 +45,7 @@ def pdf_has_text(fpath: str) -> bool:
     for i, p in enumerate(reader.pages):
         count += len(p.extract_text())
     
-    return count >= MAGIC_NUMBER
+    return count >= MIN_DEPO_CHAR_LEN
 
 def extract_dotted(s: str) -> str:
     line_arr = []
@@ -63,6 +63,9 @@ def extract_dotted(s: str) -> str:
         return transcript_quarters(fpath, l_margin, r_margin, t_margin, b_margin)
     else:
         return transcript_ocr(fpath)
+
+def transcript_compare_quarters_single(fpath: str):
+    raise Exception('not implemented')
 
 def transcript_quarters(fpath: str, l_margin: int = 0, r_margin: int = 0, t_margin: int = 0, b_margin: int = 0):
     reader = PdfReader(fpath)

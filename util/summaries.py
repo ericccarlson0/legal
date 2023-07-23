@@ -4,7 +4,7 @@ import util.setup_openai
 
 from util.directories import TRANSCRIPT_COND_DIR, SUMMARY_FINAL_DIR
 from util.token_util import divide_by_tokens
-from util.transcripts import MAGIC_NUMBER
+from util.transcripts import MIN_DEPO_CHAR_LEN
 
 def get_file_summary(fname_prefix: str, prompt: str) -> str:
     fpath = os.path.join(TRANSCRIPT_COND_DIR, f'{fname_prefix}.txt')
@@ -15,7 +15,7 @@ def get_file_summary(fname_prefix: str, prompt: str) -> str:
 
 def get_text_summary(input: str, prompt: str, do_seg: bool = True) -> str:
     if do_seg:
-        segments = divide_by_tokens(input, MAGIC_NUMBER)
+        segments = divide_by_tokens(input, MIN_DEPO_CHAR_LEN)
         ret = ""
         for i, s in enumerate(segments):
             print(f'segment {i}', flush=True)

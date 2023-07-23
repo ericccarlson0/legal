@@ -3,7 +3,7 @@ import re
 import time
 
 from celery import Celery
-from downstream_tasks import c_transcript_ocr_in_range
+from downstream_tasks import _old_c_transcript_ocr_in_range
 from pathlib import Path
 from pdf2image import pdfinfo_from_path
 from plaintiff.plaintiffs import *
@@ -11,6 +11,7 @@ from util.directories import *
 from util.x_logging import log_execution
 from util.summaries import get_file_summary, get_text_summary
 from util.transcripts import *
+from util.transcripts_aws import *
 
 prompts_map = {
     "LIABILITY": [PLA_LIA_BP_PROMPT, PLA_LIA_BP_SUMMARY],
@@ -48,38 +49,17 @@ LONG_TIME = 16
 @app.task(queue='q1')
 @log_execution(True)
 def c_transcript(file_id: int):
+    # FIXME (REMOVE CHECK)
     if not check_transcript_p1_file(file_id):
         res = c_transcript_p1(file_id)
-
-        # await_count = 0
-        # while not res.ready():
-        #     if res.status == 'FAILURE':
-        #         break
-        #     time.sleep(MEDIUM_TIME)
-        #     await_count += 1
-        #     print(f'await (c_transcript wait on p1) {await_count}', flush=True)
-
+        # res.status == 'FAILURE' | 'SUCCESS'?
         print(f'result {res}', flush=True)
 
+    # FIXME (REMOVE CHECK)
     if not check_transcript_p2_file(file_id):
         res = c_transcript_p2(file_id)
-
-        # await_count = 0
-        # while not res.ready():
-        #     if res.status == 'FAILURE':
-        #         break
-        #     time.sleep(MEDIUM_TIME)
-        #     await_count += 1
-        #     print(f'await (c_transcript wait on p2) {await_count}', flush=True)
-
+        # res.status == 'FAILURE' | 'SUCCESS'?
         print(f'result {res}', flush=True) 
-
-    # except Exception as e:
-    #     message =  f"File Transcript did not work (stage 1).\n{e}"
-        
-    # except Exception as e:
-    #     message =  f"File Transcript did not work (stage 2).\n{e}"
-    #     return jsonify({ "error": message })
 
 @app.task(queue='q1')
 def c_transcript_p1(file_id: int):
@@ -88,7 +68,7 @@ def c_transcript_p1(file_id: int):
 
     if pdf_has_text(pdf_fpath):
         # FIXME
-        transcript = transcript_quarters(pdf_fpath)
+        transcript = transcript_compare_quarters_single(pdf_fpath)
     else:
         transcript = c_transcript_ocr(pdf_fpath)
 
@@ -133,6 +113,16 @@ PAGE_GROUP_N = 8
 
 @app.task(queue='q1')
 def c_transcript_ocr(fname: str):
+    print('c_transcript_ocr')
+
+    pages = textract_pdf_to_image(fname)
+    transcript = transcript_textract_pages(pages)
+
+    return transcript
+
+# DEPRECATED
+@app.task(queue='q1')
+def _old_c_transcript_ocr(fname: str):
     pdfinfo = pdfinfo_from_path(fname)
 
     n_pages = pdfinfo["Pages"]
@@ -141,7 +131,7 @@ def c_transcript_ocr(fname: str):
     async_results = []
     for p in range(1, n_pages+1, PAGE_GROUP_N):
         print(f'{p} to {min(p+PAGE_GROUP_N-1, n_pages)}', flush=True)
-        res = c_transcript_ocr_in_range.delay(fname, p, min(p+PAGE_GROUP_N-1, n_pages))
+        res = _old_c_transcript_ocr_in_range.delay(fname, p, min(p+PAGE_GROUP_N-1, n_pages))
         async_results.append(res)
 
         time.sleep(MEDIUM_TIME)

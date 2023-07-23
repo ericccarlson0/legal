@@ -19,8 +19,9 @@ app = Celery(
     broker='redis://localhost:6379',
 )
 
+# DEPRECATED
 @app.task(queue='q2')
-def c_transcript_ocr_single_page(fpath, s: int):
+def _old_c_transcript_ocr_single_page(fpath, s: int):
     converted_page = convert_from_path(fpath, first_page=s, last_page=s, grayscale=True)
 
     for page in converted_page:
@@ -45,8 +46,9 @@ def c_transcript_ocr_single_page(fpath, s: int):
 
     return transcript
 
+# DEPRECATED
 @app.task(queue='q2')
-def c_transcript_ocr_in_range(fpath, s: int, e: int):
+def _old_c_transcript_ocr_in_range(fpath, s: int, e: int):
     converted_pages = convert_from_path(fpath, first_page=s, last_page=e, grayscale=True)
 
     transcript_list = []

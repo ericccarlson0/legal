@@ -67,9 +67,6 @@ def textract_bucket(bucket: str, fname: str):
 def text_has_page_number(s: str) -> bool:
     return re.search(r"Page \d+", s)
 
-def text_is_number(s: str) -> bool:
-    return re.search(r"\d+", s)
-
 MIN_BOUNDING_BOX_PROPORTION = 0.65
 def divide_into_quarters(im_arr: np.ndarray):
     assert im_arr.ndim == 2
@@ -165,10 +162,11 @@ def textract_pdf_to_image(fpath: str):
 
     pdfinfo = pdfinfo_from_path(fpath)
     n_pages = pdfinfo['Pages']
-    # print(n_pages, 'pages')
+
     f_page_quad = check_begin_for_quarters(fpath)
     print('f_page_quad', f_page_quad)
     is_quarters = f_page_quad > 0
+    # TODO: EMIT EVENT?
 
     pages = []
     for i in range(n_pages):
@@ -184,13 +182,14 @@ def textract_pdf_to_image(fpath: str):
 
     return pages
 
-def transcript_from_textract(pages) -> str:
+def transcript_textract_pages(pages) -> str:
     transcript_arr = []
     for page in pages:
         for block in page['Blocks']:
             if block['BlockType'] == 'LINE':
                 s = block['Text']
-                if not text_is_number(s):
+                # TODO: cannot filter out ALL numbers
+                if not s.isnumeric():
                     transcript_arr.append(s)
     
     ret = ' '.join(transcript_arr)
