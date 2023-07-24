@@ -3,8 +3,10 @@ from flask_cors import CORS
 from prompts import bp as prompts_bp
 from sf.docrio import check_pdf_download, get_signed_url, upload_base64
 from upstream_tasks import c_transcript, c_summarize
+from util.constants import *
 from util.transcripts import check_transcript
 from util.summaries import check_summary
+from util.x_logging import get_progress, get_unique_filepath
 
 app = Flask(__name__)
 app.register_blueprint(prompts_bp, url_prefix="/internal/prompts")
@@ -75,6 +77,17 @@ def _transcribe(file_id):
         return jsonify({ "finished": False })
     
     return jsonify({ "finished": True })
+
+@app.route("/internal/transcript_progress", methods=['POST'])
+def get_transcript_progress():
+    form_data = request.form
+    file_id = form_data["id"]
+    print(f'/internal/transcript_progress {file_id}', flush=True)
+
+    logging_fpath = get_unique_filepath(TRANSCRIBE_TASK, file_id)
+    progress = get_progress(logging_fpath)
+
+    return jsonify({ "progress": progress })
 
 @app.route("/internal/docrio/signed_url", methods=['GET'])
 def docrio_signed_url():

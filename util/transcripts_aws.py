@@ -6,7 +6,7 @@ import os
 import re
 import time
 
-from util.x_logging import log_execution
+from util.x_logging import *
 from pdf2image import convert_from_path, pdfinfo_from_path
 from PIL import Image, ImageDraw
 from matplotlib import pyplot as plt
@@ -21,6 +21,10 @@ TEMP_DIR = os.path.join(os.getcwd(), f'temp-{__name__}')
 if not os.path.isdir(TEMP_DIR):
     os.mkdir(TEMP_DIR)
 
+# FIXME: MOVE
+def pdf_fpath_of(file_id: int):
+    return os.path.join(FILE_INFO_DIR, f'{file_id}.pdf')
+
 def show_bbox(draw, bbox, w: int, h: int, color: str):
     left = w * bbox['Left']
     top = h * bbox['Top']
@@ -33,7 +37,6 @@ def show_selected(draw, bbox, w: int, h: int, color: str):
 
     draw.rectangle([left, top, left + (w * bbox['Width']), top + (h * bbox['Height'])], fill=color)
 
-@log_execution
 def textract_bucket(bucket: str, fname: str):
     textract = boto3.client('textract', region_name=REGION)
 
@@ -43,7 +46,7 @@ def textract_bucket(bucket: str, fname: str):
     resp = textract.get_document_text_detection(JobId=job_id)
     c = 0
     while resp['JobStatus'] != 'SUCCEEDED':
-        time.sleep(SMALL_TIME)
+        time.sleep(MINISCULE_TIME)
         resp = textract.get_document_text_detection(JobId=job_id)
 
         c += 1
@@ -92,7 +95,6 @@ def divide_into_quarters(im_arr: np.ndarray):
     return tl_img, bl_img, tr_img, br_img
 
 # return whether four or more pages out of the first ten are divided into 'Page X', 'Page X+1', 'Page X+2', 'Page X+3'
-@log_execution(True)
 def check_begin_for_quarters(fpath: str) -> int:
     textract = boto3.client('textract', region_name=REGION)
 
@@ -156,8 +158,8 @@ def textract_quarters_page(textract, im):
 
     return pages
 
-@log_execution(True)
-def textract_pdf_to_image(fpath: str):
+def textract_pdf_to_image(file_id: int):
+    fpath = pdf_fpath_of(file_id)
     textract = boto3.client('textract', region_name=REGION)
 
     pdfinfo = pdfinfo_from_path(fpath)
@@ -179,6 +181,10 @@ def textract_pdf_to_image(fpath: str):
             responses = textract_quarters_page(textract, im)
             if responses:
                 pages = pages + responses
+        # PROGRESS
+        logging_fpath = get_unique_filepath(TRANSCRIBE_TASK, file_id)
+        log_progress(logging_fpath, (i+1) / n_pages)
+        print(f'progress {get_progress(logging_fpath):.4f}')
 
     return pages
 

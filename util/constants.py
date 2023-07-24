@@ -1,5 +1,8 @@
 import os
 
+TRANSCRIBE_TASK = 'transcribe'
+SUMMARIZE_TASK = 'summarize'
+
 LEGAL_BASE_DIR = os.getenv('LEGAL_BASE_DIR')
 
 FILE_INFO_DIR = os.path.join(LEGAL_BASE_DIR, 'downloads')
@@ -35,5 +38,6 @@ if not os.path.isdir(RES_LOG_DIR):
     os.mkdir(RES_LOG_DIR)
 
 IMG_DIR = os.getenv('DEPO_IMG_DIR')
-PLA_IMG_DIR = os.path.join(IMG_DIR, 'Plaintiff')
-DEF_IMG_DIR = os.path.join(IMG_DIR, 'Defendant')
+if IMG_DIR is not None:
+    PLA_IMG_DIR = os.path.join(IMG_DIR, 'Plaintiff')
+    DEF_IMG_DIR = os.path.join(IMG_DIR, 'Defendant')

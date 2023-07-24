@@ -7,7 +7,7 @@ from downstream_tasks import _old_c_transcript_ocr_in_range
 from pathlib import Path
 from pdf2image import pdfinfo_from_path
 from plaintiff.plaintiffs import *
-from util.directories import *
+from util.constants import *
 from util.x_logging import log_execution
 from util.summaries import get_file_summary, get_text_summary
 from util.transcripts import *
@@ -47,7 +47,7 @@ MEDIUM_TIME = 4
 LONG_TIME = 16
 
 @app.task(queue='q1')
-@log_execution(True)
+@log_execution(TRANSCRIBE_TASK, True)
 def c_transcript(file_id: int):
     # FIXME (REMOVE CHECK)
     if not check_transcript_p1_file(file_id):
@@ -61,35 +61,25 @@ def c_transcript(file_id: int):
         # res.status == 'FAILURE' | 'SUCCESS'?
         print(f'result {res}', flush=True) 
 
+# FULL TRANSCRIPT
 @app.task(queue='q1')
 def c_transcript_p1(file_id: int):
-    pdf_fpath = os.path.join(FILE_INFO_DIR, f'{file_id}.pdf')
-    print(f'pdf fpath {pdf_fpath}', flush=True)
-
+    pdf_fpath = pdf_fpath_of(file_id)
     if pdf_has_text(pdf_fpath):
         # FIXME
         transcript = transcript_compare_quarters_single(pdf_fpath)
     else:
-        transcript = c_transcript_ocr(pdf_fpath)
-
-        # await_count = 0
-        # while not ocr_res.ready():
-        #     if ocr_res.status == 'FAILURE':
-        #         break
-        #     time.sleep(MEDIUM_TIME)
-        #     await_count += 1
-        #     print(f'await (c_transcript_p1) {await_count}', flush=True)
+        transcript = c_transcript_ocr(file_id)
 
     txt_full_fpath = os.path.join(TRANSCRIPT_FULL_DIR, f'{file_id}.txt')
     print(f'text full fpath {txt_full_fpath}')
     Path(txt_full_fpath).touch()
     with open(txt_full_fpath, 'w') as f:
         f.write(transcript)
-    
-    print('done, stage 1 of transcript', flush=True)
 
     return True
 
+# COND TRANSCRIPT
 @app.task(queue='q1')
 def c_transcript_p2(file_id: int):
     with open(os.path.join(TRANSCRIPT_FULL_DIR, f'{file_id}.txt'), 'r') as f:
@@ -98,28 +88,23 @@ def c_transcript_p2(file_id: int):
     transcript = condensed_transcript(transcript)
 
     txt_cond_fpath = os.path.join(TRANSCRIPT_COND_DIR, f'{file_id}.txt')
-    print(f'txt cond fpath {txt_cond_fpath}', flush=True)
 
     Path(txt_cond_fpath).touch()
     with open(txt_cond_fpath, 'w') as f:
         f.write(transcript)
 
-    print('done, stage 2 of transcript', flush=True)
-
     return True
 
-PAGE_GROUP_N = 8
-# group(celery_page_transcript.delay(p, i) for i, p in enumerate(pages))()
-
 @app.task(queue='q1')
-def c_transcript_ocr(fname: str):
+def c_transcript_ocr(file_id: int):
     print('c_transcript_ocr')
 
-    pages = textract_pdf_to_image(fname)
+    pages = textract_pdf_to_image(file_id)
     transcript = transcript_textract_pages(pages)
 
     return transcript
 
+PAGE_GROUP_N = 8
 # DEPRECATED
 @app.task(queue='q1')
 def _old_c_transcript_ocr(fname: str):
@@ -161,7 +146,7 @@ def _old_c_transcript_ocr(fname: str):
     return ret
 
 @app.task(queue='q1')
-@log_execution(True)
+@log_execution(SUMMARIZE_TASK, True)
 def c_summarize(file_id: str, topic: str):
     if topic not in prompts_map:
         raise Exception(f"{topic} not in " + ",".join([k for k in prompts_map.keys()]))

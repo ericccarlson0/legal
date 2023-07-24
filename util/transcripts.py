@@ -5,7 +5,7 @@ from pypdf import PdfReader
 
 from util.str_util import strip_whitespace, strip_line_numbers, is_numbered, find_first_n
 from util.str_util import cut_after_suffix, cut_before_prefix
-from util.directories import TRANSCRIPT_FULL_DIR, TRANSCRIPT_COND_DIR
+from util.constants import *
 
 class NoPdfTextException(Exception):
     pass

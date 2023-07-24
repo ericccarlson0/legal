@@ -6,7 +6,7 @@ import uuid
 
 from celery import Celery
 from pdf2image import convert_from_path
-from util.directories import *
+from util.constants import *
 
 # A temporary path for intermediate files.
 TEMP_DIR = os.path.join(os.getcwd(), f'temp-{__name__}')

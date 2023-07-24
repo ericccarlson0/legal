@@ -4,7 +4,7 @@ import json
 import requests
 
 from auth.jwt import get_token
-from util.directories import FILE_INFO_DIR
+from util.constants import FILE_INFO_DIR
 
 if os.environ.get('DEV_ENV'):
     GATEWAY = "https://api.214375601255.genesisapi.com/v1/"

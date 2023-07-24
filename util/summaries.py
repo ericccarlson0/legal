@@ -2,7 +2,7 @@ import openai
 import os
 import util.setup_openai
 
-from util.directories import TRANSCRIPT_COND_DIR, SUMMARY_FINAL_DIR
+from util.constants import *
 from util.token_util import divide_by_tokens
 from util.transcripts import MIN_DEPO_CHAR_LEN
 
