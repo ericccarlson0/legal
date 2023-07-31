@@ -107,3 +107,10 @@ def docrio_create():
     content_type = form_data['content_type']
 
     return upload_base64(fname, base64_str, content_type=content_type)
+
+@app.route("/internal/dev", methods=['GET'])
+def get_dev():
+    if os.environ.get('DEV_ENV'):
+        return f"DEV_ENV set to {os.environ.get('DEV_ENV')}"
+    else:
+        return "DEV_ENV not set"
